@@ -5,7 +5,7 @@
 ## 실행
 
 ```bash
-python3 -m http.server 5173 --bind 127.0.0.1 --directory ~/shorts-editor
+python3 -m http.server 5173 --bind 127.0.0.1 --directory ~/momonga/apps/shorts-editor
 ```
 
 Chrome에서 http://localhost:5173 을 연다. 작업 내용은 브라우저(IndexedDB)에 자동 저장된다.
