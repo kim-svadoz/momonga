@@ -298,6 +298,8 @@ function renderScenes() {
     const { visual, owner } = resolveVisual(i);
     const inherited = !s.visual && owner >= 0;
     const own = s.visual;
+    // 자르기는 지금 보이는 영상(이어 쓰는 앞 장면 영상 포함)에 적용한다
+    const video = visual && visual.type === 'video' ? visual : null;
 
     li.innerHTML = `
       <div class="scene-thumb ${inherited ? 'inherit' : ''}" ${visual && visual.fileId ? `data-file="${visual.fileId}"` : ''}
@@ -319,7 +321,7 @@ function renderScenes() {
           화면:
           <button class="small pick">이미지/영상</button>
           <input type="color" class="color" value="${own && own.type === 'color' ? own.color : '#222222'}" title="단색 화면">
-          ${own && own.type === 'video' ? '<button class="small trim">✂ 자르기</button>' : ''}
+          <button class="small trim" ${video ? `title="${inherited ? '이어 쓰는 앞 장면 영상을 잘라요' : '영상 앞뒤·중간 자르기'}"` : 'disabled title="영상을 넣은 장면에서 쓸 수 있어요"'}>✂ 영상 자르기</button>
           ${own ? '<button class="small ghost clear" title="앞 장면 화면 이어쓰기">비우기</button>' : ''}
           <input type="file" class="file" accept="image/*,video/*" hidden>
         </div>
@@ -383,7 +385,7 @@ function renderScenes() {
       changed({ structure: true });
       cleanupFiles();
     });
-    if (q('.trim')) q('.trim').addEventListener('click', () => Trim.open(s.visual, () => changed()));
+    if (video) q('.trim').addEventListener('click', () => Trim.open(video, () => changed()));
     if (q('.v-fit')) q('.v-fit').addEventListener('change', (e) => { s.visual.fit = e.target.value; changed(); });
     if (q('.v-motion')) q('.v-motion').addEventListener('change', (e) => { s.visual.motion = e.target.value; changed(); });
     if (q('.v-dim')) q('.v-dim').addEventListener('input', (e) => { s.visual.dim = parseFloat(e.target.value); changed(); });
