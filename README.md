@@ -7,7 +7,7 @@
 이 폴더에서 Claude Code를 열고 하고 싶은 일을 말하면 된다. Claude가 `CLAUDE.md`를 먼저 읽고 맞는 스킬을 쓴다.
 
 ```
-cd ~/momonga
+cd ~/content-studio
 claude
 ```
 
