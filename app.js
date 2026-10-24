@@ -42,6 +42,10 @@ function loadMedia(fileId, blob, type) {
       updateThumbs(fileId);
     }, { once: true });
     v.addEventListener('seeked', () => { if (!playing && !exporting) redraw(); });
+    // 길이 정보가 없는 영상(화면 녹화 webm 등)은 길이를 알아내야 반복·자르기가 맞는다
+    v.addEventListener('loadedmetadata', () => {
+      if (!isFinite(v.duration)) realDuration(v).then(() => redraw());
+    }, { once: true });
     v.src = url;
     m.el = v;
   }
@@ -321,7 +325,7 @@ function renderScenes() {
           화면:
           <button class="small pick">이미지/영상</button>
           <input type="color" class="color" value="${own && own.type === 'color' ? own.color : '#222222'}" title="단색 화면">
-          <button class="small trim" ${video ? `title="${inherited ? '이어 쓰는 앞 장면 영상을 잘라요' : '영상 앞뒤·중간 자르기'}"` : 'disabled title="영상을 넣은 장면에서 쓸 수 있어요"'}>✂ 영상 자르기</button>
+          <button class="small trim ${video && video.keep ? 'on' : ''}" ${video ? `title="${inherited ? '이어 쓰는 앞 장면 영상을 잘라요' : '영상 앞뒤·중간 자르기'}"` : 'disabled title="영상을 넣은 장면에서 쓸 수 있어요"'}>✂ 영상 자르기${video && video.keep ? ' (잘림)' : ''}</button>
           ${own ? '<button class="small ghost clear" title="앞 장면 화면 이어쓰기">비우기</button>' : ''}
           <input type="file" class="file" accept="image/*,video/*" hidden>
         </div>
@@ -385,7 +389,7 @@ function renderScenes() {
       changed({ structure: true });
       cleanupFiles();
     });
-    if (video) q('.trim').addEventListener('click', () => Trim.open(video, () => changed()));
+    if (video) q('.trim').addEventListener('click', () => Trim.open(video, (opts) => changed(opts)));
     if (q('.v-fit')) q('.v-fit').addEventListener('change', (e) => { s.visual.fit = e.target.value; changed(); });
     if (q('.v-motion')) q('.v-motion').addEventListener('change', (e) => { s.visual.motion = e.target.value; changed(); });
     if (q('.v-dim')) q('.v-dim').addEventListener('input', (e) => { s.visual.dim = parseFloat(e.target.value); changed(); });

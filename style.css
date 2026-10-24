@@ -244,11 +244,12 @@ button.del { color: #ff8a9e; }
 .progress > div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
 
 .modal.trim { width: min(760px, calc(100vw - 32px)); }
-.trim-video { width: 100%; max-height: 50vh; background: #000; border-radius: 6px; }
+.trim-video { width: 100%; max-height: 45vh; background: #000; border-radius: 6px; }
 .trim-bar {
   position: relative;
-  height: 28px;
-  background: #3a2a2e;
+  height: 36px;
+  background: repeating-linear-gradient(135deg, #6b2230 0 8px, #4d1923 8px 16px);
+  touch-action: none;
   border-radius: 4px;
   cursor: pointer;
   overflow: hidden;
@@ -268,3 +269,21 @@ button.del { color: #ff8a9e; }
 .trim-pos { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; z-index: 2; pointer-events: none; }
 .trim-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .trim-actions .sep { flex: 1; }
+
+.trim-row { display: flex; align-items: center; gap: 10px; }
+.trim-status { margin: 0; font-size: 13px; min-height: 18px; }
+.trim-status.ok { color: #7fd99a; }
+.trim-status.warn { color: #ffcc66; }
+.trim-length {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  background: #3a3220;
+  border: 1px solid #6b5a2a;
+  border-radius: 6px;
+  padding: 8px;
+}
+.trim-length[hidden] { display: none; }
+button.trim.on { border-color: #2e7d4f; color: #7fd99a; }
