@@ -1,2 +1,7 @@
 .DS_Store
 output/
+bengjjang/
+
+# 개인 자료 (원본 글, 사진, 예전 작업 폴더)
+brand/samples/
+history/글쓰기_규칙_원본.txt
