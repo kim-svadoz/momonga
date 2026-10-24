@@ -51,3 +51,9 @@
 - sugo 도메인 `fashion-content`, 프로젝트 `content-studio`로 등록.
 - 로컬 폴더 `~/momonga` → `~/content-studio`. sugo 대시보드가 폴더 이름을 프로젝트 이름으로 보여주기 때문.
 - GitHub 저장소 이름은 `momonga` 그대로.
+
+## 2026-10-24 작업 방식: 데스크탑 Code, 자동 커밋, push는 확인
+
+- 데스크탑 앱 Code 화면에서 `content-studio`를 열고 대화로 작업한다.
+- 작업마다 자동 커밋, GitHub push는 매번 물어본다. 저장소가 공개이기 때문.
+- 바탕화면 `벵짱` 폴더는 `bengjjang/`으로 옮겨 보관. 개인 자료(사진, 글 원본)는 git에서 뺀다.
