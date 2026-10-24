@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>숏츠 편집기</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Gothic+A1:wght@400;700;900&family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&family=Gowun+Dodum&family=Sunflower:wght@300;500;700&family=Gaegu:wght@400;700&family=Song+Myung&family=Dongle:wght@400;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>숏츠 편집기</h1>
+    <div class="topbar-right">
+      <label>비율
+        <select id="aspect">
+          <option value="9:16">9:16</option>
+          <option value="4:5">4:5</option>
+          <option value="1:1">1:1</option>
+          <option value="16:9">16:9</option>
+        </select>
+      </label>
+      <span id="saveStatus" class="muted">저장됨</span>
+      <button id="saveZip">프로젝트 저장</button>
+      <button id="loadZip">불러오기</button>
+      <input type="file" id="loadZipFile" accept=".zip" hidden>
+      <button id="exportMp4" class="primary">MP4 내보내기</button>
+      <button id="resetProject" class="ghost">새 프로젝트</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- 왼쪽: 대본·길이·자막·보관함·얹기 -->
+    <aside class="panel left">
+      <details open>
+        <summary>대본</summary>
+        <textarea id="script" rows="9" placeholder="대본을 붙여 넣으세요. 문장 하나가 장면 하나가 됩니다."></textarea>
+        <button id="splitBtn" class="primary">문장으로 나누기</button>
+        <p class="hint">다시 나누면 장면 글이 새 문장으로 바뀌고, 화면·효과음·얹은 것은 순서대로 남아요.</p>
+      </details>
+
+      <details>
+        <summary>장면 길이</summary>
+        <label class="row">읽는 속도 (글자/초)
+          <input type="number" id="cps" min="1" max="20" step="0.5">
+        </label>
+        <label class="row">최소 길이 (초)
+          <input type="number" id="minDur" min="0.5" max="10" step="0.1">
+        </label>
+        <p class="hint">'자동'인 장면은 글자 수 ÷ 읽는 속도로 길이가 정해져요.</p>
+      </details>
+
+      <details open>
+        <summary>자막</summary>
+        <label class="row">글꼴 <select data-sub="font" id="subFont"></select></label>
+        <label class="row">굵기
+          <select data-sub="weight" data-num>
+            <option value="400">보통</option><option value="700">굵게</option><option value="900">아주 굵게</option>
+          </select>
+        </label>
+        <label class="row">크기 <input type="range" data-sub="size" min="24" max="200"><output></output></label>
+        <label class="row">자간 <input type="range" data-sub="spacing" min="-10" max="40"><output></output></label>
+        <label class="row">줄 간격 <input type="range" data-sub="lineHeight" min="0.8" max="2.5" step="0.05"><output></output></label>
+        <label class="row">세로 위치 (%) <input type="range" data-sub="y" min="5" max="95"><output></output></label>
+        <label class="row">글자색 <input type="color" data-sub="color"></label>
+        <label class="row">외곽선 <span><input type="checkbox" data-sub="stroke"> <input type="color" data-sub="strokeColor"></span></label>
+        <label class="row">뒤로 퍼지는 그림자 <input type="color" data-sub="glowColor"></label>
+        <label class="row">그림자 퍼짐 <input type="range" data-sub="glow" min="0" max="120"><output></output></label>
+        <label class="row">배경 박스 <span><input type="checkbox" data-sub="box"> <input type="color" data-sub="boxColor"></span></label>
+        <label class="row">박스 투명도 <input type="range" data-sub="boxOpacity" min="0" max="1" step="0.05"><output></output></label>
+        <label class="row">긴 문장 끊어 보기
+          <select data-sub="chunk" data-num>
+            <option value="0">끊지 않음</option>
+            <option value="20">약 20자씩</option>
+            <option value="14">약 14자씩</option>
+            <option value="9">약 9자씩</option>
+          </select>
+        </label>
+      </details>
+
+      <details>
+        <summary>글꼴 보관함</summary>
+        <ul id="fontLibrary" class="lib-list"></ul>
+        <button id="addFont">+ 글꼴 파일 넣기 (ttf, otf, woff)</button>
+        <input type="file" id="addFontFile" accept=".ttf,.otf,.woff,.woff2" multiple hidden>
+        <p class="hint">넣은 글꼴은 새 프로젝트를 시작해도 남아요.</p>
+      </details>
+
+      <details>
+        <summary>효과음 보관함</summary>
+        <ul id="sfxLibrary" class="lib-list"></ul>
+        <button id="addSfx">+ 효과음 파일 넣기 (mp3, wav)</button>
+        <input type="file" id="addSfxFile" accept="audio/*" multiple hidden>
+        <p class="hint">넣은 효과음은 모든 장면에서 골라 쓸 수 있고, 새 프로젝트를 시작해도 남아요.</p>
+      </details>
+
+      <details open>
+        <summary>타이틀·이미지 얹기</summary>
+        <div id="overlayPanel"></div>
+      </details>
+    </aside>
+
+    <!-- 가운데: 미리보기·타임라인 -->
+    <section class="center">
+      <div class="preview-wrap" id="previewWrap">
+        <canvas id="preview"></canvas>
+      </div>
+      <div class="transport">
+        <button id="playBtn" class="primary">▶ 재생</button>
+        <span id="timeLabel" class="mono">0:00.0 / 0:00.0</span>
+        <span class="hint">Space 재생/정지 · 파일을 끌어다 놓거나 Cmd+V로 지금 장면 화면 넣기</span>
+      </div>
+      <div id="timeline" class="timeline">
+        <div id="playhead" class="playhead"></div>
+      </div>
+    </section>
+
+    <!-- 오른쪽: 장면 목록 -->
+    <aside class="panel right">
+      <div class="panel-head">
+        <h2>장면 <span id="sceneCount" class="muted"></span></h2>
+        <div>
+          <button id="addScene" class="small">+ 장면</button>
+          <button id="addVisualScene" class="small" title="나레이션·자막 없이 화면만 보여주는 장면">+ 화면만 장면</button>
+        </div>
+      </div>
+      <ol id="sceneList" class="scene-list"></ol>
+    </aside>
+  </main>
+
+  <div id="exportModal" class="modal-back" hidden>
+    <div class="modal">
+      <h3>MP4 내보내기</h3>
+      <div class="progress"><div id="exportBar"></div></div>
+      <p id="exportMsg" class="muted">준비 중…</p>
+      <button id="exportCancel">취소</button>
+    </div>
+  </div>
+
+  <script src="vendor/mp4-muxer.min.js"></script>
+  <script src="vendor/jszip.min.js"></script>
+  <script src="db.js"></script>
+  <script src="model.js"></script>
+  <script src="fonts.js"></script>
+  <script src="sfx.js"></script>
+  <script src="render.js"></script>
+  <script src="overlay.js"></script>
+  <script src="trim.js"></script>
+  <script src="export.js"></script>
+  <script src="projectio.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
