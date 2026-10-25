@@ -55,7 +55,9 @@ THUMB_ONLY=1 THUMB_FONT=<PostScript 이름> THUMB_OUT=<경로.jpg> swift tools/h
 | `HOOK_FONT` 오프닝 큰 제목 | BookkMyungjo-Bd | BookkMyungjo-Bd |
 | `HOOK_LINE1_Y` 오프닝 첫 줄 높이 | 0.495 | 0.41 (태그가 가슴 높이) |
 | `OUTRO_SIZE` / `OUTRO_LEAD_SIZE` 엔딩 글자 | 84 / 54 | 70 / 40 |
-| `THUMB_LOGO` 썸네일 브랜드 글자 (Didot) | "" | "ZARA" |
+| `THUMB_LOGO` 썸네일 브랜드 글자 (Didot) | "" | "" (넣어봤다가 별로라 뺌) |
+| `THUMB_TITLE` 썸네일만 큰 제목 한 줄 | "" | "자라 맨즈 아우터 추천 4" |
+| `THUMB_FONT_NAME` 썸네일 큰 제목 글꼴 | BookkMyungjo-Bd | ChosunGu |
 | `TITLE_BOTTOM` 제품명 위치 | false (위쪽 큰 명조) | true (아래쪽 작게, 가격과 한 줄) |
 | `DISPLAY_FONT` / `MAIN_FONT` | BookkMyungjo-Bd / Pretendard-SemiBold | Pretendard-SemiBold / Pretendard-Medium |
 

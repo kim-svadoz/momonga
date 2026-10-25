@@ -67,7 +67,11 @@ let HOOK_FONT = "BookkMyungjo-Bd"
 // 오프닝 큰 제목 첫 줄 높이 (화면 위에서부터 비율). 0.41이면 태그가 전신 컷의 가슴 높이에 온다 (하울 릴스: 0.495)
 let HOOK_LINE1_Y: CGFloat = 0.41
 // 썸네일 로고 글자 ("" = 없음). 화면 위쪽에 크게, Didot 글꼴로
-let THUMB_LOGO = "ZARA"
+let THUMB_LOGO = ""
+// 썸네일 큰 제목: "" = 오프닝과 같은 두 줄, 값이 있으면 썸네일만 이 한 줄로 (흰 글자)
+let THUMB_TITLE = "자라 맨즈 아우터 추천 4"
+// 썸네일 큰 제목 글꼴 (환경변수 THUMB_FONT가 있으면 그게 우선)
+let THUMB_FONT_NAME = "ChosunGu"
 let HOOK_LINE1 = "자라 맨즈에서 찾은", HOOK_LINE2 = "여자 출근룩 아우터"
 // 별·점 스티커 (썸네일·오프닝·엔딩). 하울 릴스에만 쓴다
 let STICKERS = false
@@ -78,7 +82,7 @@ let TITLE_BOTTOM = true
 // true: 맨 위 시리즈 라벨을 색 배경 띠로
 let SERIES_CHIP = true
 let SERIES_LABEL = "162 출근룩 | 자라 맨즈 아우터"
-let THUMB_TAG = "- 두툼한 겨울 아우터 4벌 -"
+let THUMB_TAG = "- 두툼한 초겨울 아우터 모음zip. -"
 let caps: [Cap] = [
     Cap(start: HOOK_END, end: END, text: SERIES_LABEL, style: .series),
 
@@ -225,8 +229,8 @@ func centerY(_ c: Cap) -> CGFloat {
 
 let hookLines: [(String, String, CGFloat, NSColor, CGFloat)] = [
     HOOK_TAG_CHIP ? (HOOK_TAG, "Pretendard-Medium", 34, PILL_INK, 0) : (HOOK_TAG, "Pretendard-ExtraBold", 60, yellow, -1),
-    (HOOK_LINE1, env["THUMB_FONT"] ?? HOOK_FONT, 86, .white, -3),
-    (HOOK_LINE2, env["THUMB_FONT"] ?? HOOK_FONT, 88, yellow, -3),
+    (HOOK_LINE1, HOOK_FONT, 86, .white, -3),
+    (HOOK_LINE2, HOOK_FONT, 88, yellow, -3),
 ]
 // 5-point star sticker; (x, y) are fractions from the top-left
 func star(_ ctx: CGContext, _ x: CGFloat, _ y: CGFloat, _ r: CGFloat, _ fill: NSColor, _ angle: CGFloat) {
@@ -339,8 +343,23 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
                 if !skipTag { let p = tagPill(centered: centered); drawPill(ctx, p.rect); p.text.draw(at: p.origin) }
                 continue
             }
+            // thumbnail: big lines in the thumbnail font; a THUMB_TITLE replaces both lines with one
+            let lineFont = tag ? (env["THUMB_FONT"] ?? THUMB_FONT_NAME) : l.1
+            if tag && !THUMB_TITLE.isEmpty {
+                if i == 1 {
+                    var size = l.2
+                    var t = NSAttributedString(string: THUMB_TITLE, attributes: [.font: font(lineFont, size), .kern: l.4])
+                    while t.size().width > W - 100 { size -= 2; t = NSAttributedString(string: THUMB_TITLE, attributes: [.font: font(lineFont, size), .kern: l.4]) }
+                    let one = NSAttributedString(string: THUMB_TITLE, attributes: [
+                        .font: font(lineFont, size), .foregroundColor: NSColor.white, .shadow: shadow,
+                        .paragraphStyle: para(lineSpacing: 0), .kern: l.4])
+                    let sz = one.size()
+                    one.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - ys[1] * H - sz.height / 2))
+                }
+                continue
+            }
             let attrs: [NSAttributedString.Key: Any] = [
-                .font: font(l.1, l.2), .foregroundColor: l.3, .shadow: shadow,
+                .font: font(lineFont, l.2), .foregroundColor: l.3, .shadow: shadow,
                 .paragraphStyle: para(lineSpacing: 0), .kern: l.4]
             let full = NSAttributedString(string: l.0, attributes: attrs).size()
             let shown = String(l.0.prefix(max(0, left)))
@@ -355,7 +374,8 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
             let tag = NSAttributedString(string: THUMB_TAG, attributes: [
                 .font: font("YoonChildfundkoreaDaeHan", 54), .foregroundColor: NSColor.white, .shadow: shadow])
             let sz = tag.size()
-            tag.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - (ys[2] + 0.06) * H - sz.height / 2))
+            let tagY = THUMB_TITLE.isEmpty ? ys[2] + 0.06 : ys[1] + 0.06
+            tag.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - tagY * H - sz.height / 2))
         }
         // thumbnail only: brand wordmark set in Didot (not the official logo file), centered above the hook text
         if tag && !THUMB_LOGO.isEmpty {
