@@ -53,9 +53,11 @@ let OUTRO_TEXT = "댓글에 '자라' 💌"
 // 엔딩 큰 글씨 위에 작게 붙는 줄 ("" = 없음)
 let OUTRO_LEAD = "제품명·가격·사이즈 궁금하면"
 // 훅 맨 윗줄 (작은 태그). 하울 릴스는 "[저장 필수]", 패션 릴스는 고정 타겟 키워드
-let HOOK_TAG = "162cm 출근룩 아우터 찾기"
-// true: 태그 글자 뒤에 색 배경(노랑 띠 + 진한 글자), false: 노랑 글자만
+let HOOK_TAG = "162cm 대기업 직장인"
+// true: 태그를 작은 알약 모양 배경에 넣어 큰 제목 바로 위에 붙인다, false: 큰 노랑 글자 (하울 릴스)
 let HOOK_TAG_CHIP = true
+// 알약 배경 (훅 태그·맨 위 시리즈 라벨): 흰 배경 + 먹색 글자. 오프닝에선 태그가 왼쪽부터 닦이듯 그라데이션으로 들어온다
+let PILL_BG = NSColor(white: 1, alpha: 0.92), PILL_INK = NSColor(white: 0.1, alpha: 1)
 let HOOK_LINE1 = "자라 맨즈에서 찾은", HOOK_LINE2 = "여자 출근룩 아우터"
 // 별·점 스티커 (썸네일·오프닝·엔딩). 하울 릴스에만 쓴다
 let STICKERS = false
@@ -141,7 +143,7 @@ func outlined(_ text: String, font f: NSFont, fill: NSColor, stroke: NSColor, st
     }
 }
 
-func boxed(_ text: String, font f: NSFont, color: NSColor, box: NSColor, padX: CGFloat, padY: CGFloat) -> CGImage {
+func boxed(_ text: String, font f: NSFont, color: NSColor, box: NSColor, padX: CGFloat, padY: CGFloat, round: Bool = false) -> CGImage {
     let attr = NSAttributedString(string: text, attributes: [
         .font: f, .foregroundColor: color, .paragraphStyle: para(), .kern: -0.5])
     let size = attr.boundingRect(with: CGSize(width: W - 120, height: 2000),
@@ -149,7 +151,9 @@ func boxed(_ text: String, font f: NSFont, color: NSColor, box: NSColor, padX: C
     let bw = ceil(size.width + padX * 2), bh = ceil(size.height + padY * 2)
     return bitmap(Int(bw), Int(bh)) { ctx in
         ctx.setFillColor(box.cgColor)
-        ctx.fill(CGRect(x: 0, y: 0, width: bw, height: bh))
+        let r = CGRect(x: 0, y: 0, width: bw, height: bh)
+        if round { ctx.addPath(CGPath(roundedRect: r, cornerWidth: bh / 2, cornerHeight: bh / 2, transform: nil)); ctx.fillPath() }
+        else { ctx.fill(r) }
         attr.draw(with: CGRect(x: padX, y: padY, width: size.width, height: size.height),
                   options: [.usesLineFragmentOrigin, .usesFontLeading])
     }
@@ -189,7 +193,7 @@ func capImage(_ c: Cap) -> CGImage {
                         stroke: NSColor(white: 0.08, alpha: 1), strokePct: 9, glow: 18, kern: -1)
     case .series:
         if SERIES_CHIP {
-            return boxed(c.text, font: font("Pretendard-SemiBold", 34), color: chipInk, box: yellow, padX: 18, padY: 8)
+            return boxed(c.text, font: font("Pretendard-Medium", 30), color: PILL_INK, box: PILL_BG, padX: 22, padY: 8, round: true)
         }
         return outlined(c.text, font: font("Pretendard-SemiBold", 34), fill: .white,
                         stroke: .black, strokePct: 10, glow: 8)
@@ -210,7 +214,7 @@ func centerY(_ c: Cap) -> CGFloat {
 }
 
 let hookLines: [(String, String, CGFloat, NSColor, CGFloat)] = [
-    (HOOK_TAG, "Pretendard-ExtraBold", 60, yellow, -1),
+    HOOK_TAG_CHIP ? (HOOK_TAG, "Pretendard-Medium", 34, PILL_INK, 0) : (HOOK_TAG, "Pretendard-ExtraBold", 60, yellow, -1),
     (HOOK_LINE1, env["THUMB_FONT"] ?? DISPLAY_FONT, 86, .white, -3),
     (HOOK_LINE2, env["THUMB_FONT"] ?? DISPLAY_FONT, 88, yellow, -3),
 ]
@@ -263,13 +267,41 @@ func brightened(_ img: CGImage) -> CGImage {
     return CIContext().createCGImage(f.outputImage!, from: CIImage(cgImage: img).extent)!
 }
 
-let hookCharCount = hookLines.reduce(0) { $0 + $1.0.count }
+// pill tag is not typed (it wipes in), so only the big lines count
+let hookCharCount = hookLines.enumerated().reduce(0) { $0 + (HOOK_TAG_CHIP && $1.offset == 0 ? 0 : $1.element.0.count) }
+// pill tag wipe-in: starts at TAG_WIPE_START, takes TAG_WIPE_LEN; typing of the big lines starts after it
+let TAG_WIPE_START = 0.1, TAG_WIPE_LEN = 0.45
 // typewriter timing: first character at 0.15s, one every 0.05s; hook shown until HOOK_END
-let typeStart = 0.15, perChar = HOOK_PER_CHAR, hookEnd = HOOK_END
+let typeStart = HOOK_TAG_CHIP ? TAG_WIPE_START + TAG_WIPE_LEN : 0.15, perChar = HOOK_PER_CHAR, hookEnd = HOOK_END
 
 // 3-tier hook text. thumbnail: above the plush toys; video intro: screen center.
 // visible: how many characters are typed so far (typewriter); lines stay left-anchored so text does not shift.
-func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim: Bool = true, tag: Bool = false) -> CGImage {
+// hook line y positions (center, fraction from top); the small pill tag sits right on top of the first big line
+func hookYs(centered: Bool) -> [CGFloat] {
+    var ys: [CGFloat] = centered ? [0.435, 0.495, 0.555] : [0.165, 0.225, 0.285]
+    if HOOK_TAG_CHIP {
+        let tagH = NSAttributedString(string: hookLines[0].0, attributes: [.font: font(hookLines[0].1, hookLines[0].2)]).size().height
+        let l1H = NSAttributedString(string: hookLines[1].0, attributes: [.font: font(hookLines[1].1, hookLines[1].2)]).size().height
+        ys[0] = ys[1] - (l1H / 2 + tagH / 2 + 26) / H
+    }
+    return ys
+}
+// pill tag: text + rounded background rect, in bitmap coordinates (bottom-left origin)
+func tagPill(centered: Bool) -> (text: NSAttributedString, origin: CGPoint, rect: CGRect) {
+    let l = hookLines[0]
+    let text = NSAttributedString(string: l.0, attributes: [.font: font(l.1, l.2), .foregroundColor: l.3,
+                                                            .paragraphStyle: para(lineSpacing: 0), .kern: l.4])
+    let full = text.size()
+    let origin = CGPoint(x: (W - full.width) / 2, y: H - hookYs(centered: centered)[0] * H - full.height / 2)
+    return (text, origin, CGRect(x: origin.x - 22, y: origin.y - 8, width: full.width + 44, height: full.height + 16))
+}
+func drawPill(_ ctx: CGContext, _ r: CGRect) {
+    ctx.addPath(CGPath(roundedRect: r, cornerWidth: r.height / 2, cornerHeight: r.height / 2, transform: nil))
+    ctx.setFillColor(PILL_BG.cgColor); ctx.fillPath()
+}
+
+// skipTag: leave the pill tag out (the video draws it as its own wipe-in layer)
+func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim: Bool = true, tag: Bool = false, skipTag: Bool = false) -> CGImage {
     return bitmap(Int(W), Int(H)) { ctx in
         if let bg = background { ctx.draw(brightened(bg), in: CGRect(x: 0, y: 0, width: W, height: H)) }
         if dim && !centered {
@@ -289,29 +321,22 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
         shadow.shadowBlurRadius = 22
         shadow.shadowOffset = CGSize(width: 0, height: -4)
 
-        let ys: [CGFloat] = centered ? [0.435, 0.495, 0.555] : [0.165, 0.225, 0.285]
+        let ys = hookYs(centered: centered)
         var left = visible
         for (i, l) in hookLines.enumerated() {
+            if i == 0 && HOOK_TAG_CHIP {
+                if !skipTag { let p = tagPill(centered: centered); drawPill(ctx, p.rect); p.text.draw(at: p.origin) }
+                continue
+            }
             let attrs: [NSAttributedString.Key: Any] = [
                 .font: font(l.1, l.2), .foregroundColor: l.3, .shadow: shadow,
                 .paragraphStyle: para(lineSpacing: 0), .kern: l.4]
-            let chip = i == 0 && HOOK_TAG_CHIP
-            var lineAttrs = attrs
-            if chip { lineAttrs[.foregroundColor] = chipInk; lineAttrs[.shadow] = nil }
-            let full = NSAttributedString(string: l.0, attributes: lineAttrs).size()
+            let full = NSAttributedString(string: l.0, attributes: attrs).size()
             let shown = String(l.0.prefix(max(0, left)))
             left -= l.0.count
             if shown.isEmpty { continue }
             let origin = CGPoint(x: (W - full.width) / 2, y: H - ys[i] * H - full.height / 2)
-            // tag chip: the colored strip appears whole with the first typed character, then the text types in
-            if chip {
-                ctx.saveGState()
-                ctx.setShadow(offset: CGSize(width: 0, height: -3), blur: 12, color: NSColor.black.withAlphaComponent(0.35).cgColor)
-                ctx.setFillColor(yellow.cgColor)
-                ctx.fill(CGRect(x: origin.x - 22, y: origin.y - 6, width: full.width + 44, height: full.height + 12))
-                ctx.restoreGState()
-            }
-            NSAttributedString(string: shown, attributes: lineAttrs).draw(at: origin)
+            NSAttributedString(string: shown, attributes: attrs).draw(at: origin)
         }
         // thumbnail only: star stickers around the edges (kockc.o style) + small cute tag
         if tag && STICKERS { drawStickers(ctx) }
@@ -536,7 +561,7 @@ let bandFrame = CGRect(x: 0, y: H - bandTop - bandH, width: W, height: bandH)
 var frames: [CGImage] = [bitmap(Int(W), Int(bandH)) { _ in }]
 var keyTimes: [NSNumber] = [0]
 for n in 1...hookCharCount {
-    frames.append(band(hookImage(background: nil, centered: true, visible: n, dim: false)))
+    frames.append(band(hookImage(background: nil, centered: true, visible: n, dim: false, skipTag: true)))
     keyTimes.append(NSNumber(value: (typeStart + Double(n - 1) * perChar) / hookEnd))
 }
 keyTimes.append(1)
@@ -559,6 +584,36 @@ typeGroup.duration = hookEnd
 typeGroup.isRemovedOnCompletion = false
 typeLayer.add(typeGroup, forKey: "type")
 overlay.addSublayer(typeLayer)
+// pill tag: wipes in from the left with a soft gradient edge, then fades out with the hook
+if HOOK_TAG_CHIP {
+    let p = tagPill(centered: true)
+    let tagLayer = CALayer()
+    tagLayer.frame = p.rect
+    tagLayer.contents = bitmap(Int(ceil(p.rect.width)), Int(ceil(p.rect.height))) { ctx in
+        drawPill(ctx, CGRect(origin: .zero, size: p.rect.size))
+        p.text.draw(at: CGPoint(x: p.origin.x - p.rect.minX, y: p.origin.y - p.rect.minY))
+    }
+    let mask = CAGradientLayer()
+    mask.frame = tagLayer.bounds
+    mask.startPoint = CGPoint(x: 0, y: 0.5); mask.endPoint = CGPoint(x: 1, y: 0.5)
+    mask.colors = [NSColor.black.cgColor, NSColor.black.withAlphaComponent(0).cgColor]
+    mask.locations = [-0.35, 0]
+    let wipe = CABasicAnimation(keyPath: "locations")
+    wipe.fromValue = [-0.35, 0]; wipe.toValue = [1, 1.35]
+    wipe.beginTime = TAG_WIPE_START; wipe.duration = TAG_WIPE_LEN
+    wipe.timingFunction = CAMediaTimingFunction(name: .easeOut)
+    wipe.fillMode = .both; wipe.isRemovedOnCompletion = false
+    mask.add(wipe, forKey: "wipe")
+    tagLayer.mask = mask
+    let tagFade = CAKeyframeAnimation(keyPath: "opacity")
+    tagFade.values = [1, 1, 0]
+    tagFade.keyTimes = [0, NSNumber(value: (hookEnd - 0.1) / hookEnd), 1]
+    tagFade.beginTime = AVCoreAnimationBeginTimeAtZero; tagFade.duration = hookEnd
+    tagFade.isRemovedOnCompletion = false
+    tagLayer.opacity = 0
+    tagLayer.add(tagFade, forKey: "fade")
+    overlay.addSublayer(tagLayer)
+}
 // star stickers during the intro, same as the thumbnail
 if STICKERS { addTimed(bitmap(Int(W), Int(H)) { ctx in drawStickers(ctx) }, frame: full, start: 0, end: hookEnd) }
 // outro: dim + stars + closing line over the group shot

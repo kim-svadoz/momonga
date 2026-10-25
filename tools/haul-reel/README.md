@@ -47,8 +47,10 @@ THUMB_ONLY=1 THUMB_FONT=<PostScript 이름> THUMB_OUT=<경로.jpg> swift tools/h
 | 설정 | 하울 릴스 | 패션 피팅 릴스 |
 | --- | --- | --- |
 | `STICKERS` 별 스티커 | true | false |
-| `HOOK_TAG_CHIP` 훅 태그 노랑 띠 | false | true |
-| `SERIES_CHIP` 맨 위 라벨 노랑 띠 | false | true |
+| `HOOK_TAG_CHIP` 훅 태그를 작은 알약으로 (그라데이션 등장, 타자기 제외) | false | true |
+| `SERIES_CHIP` 맨 위 라벨 알약 배경 | false | true |
+| `PILL_BG` / `PILL_INK` 알약 색 | — | 흰 0.92 / 먹색 |
+| `HOOK_PER_CHAR` 타자기 한 글자 간격 | 0.05 | 0.04 |
 | `TITLE_BOTTOM` 제품명 위치 | false (위쪽 큰 명조) | true (아래쪽 작게, 가격과 한 줄) |
 | `DISPLAY_FONT` / `MAIN_FONT` | BookkMyungjo-Bd / Pretendard-SemiBold | Pretendard-SemiBold / Pretendard-Medium |
 
