@@ -31,10 +31,13 @@ func font(_ name: String, _ size: CGFloat) -> NSFont {
 
 let yellow = NSColor(red: 1.0, green: 0.85, blue: 0.30, alpha: 1)
 let cream = NSColor(red: 1.0, green: 0.96, blue: 0.86, alpha: 1)
+// chip: ordihome-style flat color strip behind dark text (matcha green for the 2탄 말차 line)
+let chipBg = NSColor(red: 0.78, green: 0.91, blue: 0.60, alpha: 1)
+let chipInk = NSColor(red: 0.12, green: 0.16, blue: 0.08, alpha: 1)
 
 // MARK: - caption timeline
 
-enum Style { case title, main, box, cute, lead, gloss, price, note, series, outro }
+enum Style { case title, main, box, cute, lead, chip, gloss, price, note, series, outro }
 struct Cap { let start: Double; let end: Double; let text: String; let style: Style }
 
 // ===== 회차 데이터: 돈키호테 쇼핑리스트 2탄 (1탄 데이터는 output/261025/reels_돈키호테 추천템 1탄/reel_1탄.swift) =====
@@ -67,6 +70,7 @@ let caps: [Cap] = [
     Cap(start: 13.6, end: 17.4, text: "오리지널 | 168엔", style: .price),
     Cap(start: 17.4, end: 20.6, text: "말차맛은 처음 먹어봤는데", style: .main),
     Cap(start: 17.8, end: 20.6, text: "말차향이 진짜 진하고 고급져요..", style: .box),
+    Cap(start: 18.4, end: 20.6, text: "말차 러버들 추천!", style: .chip),
     Cap(start: 17.4, end: 20.6, text: "말차맛 | 198엔", style: .price),
 
     // 3. 불닭 카레 (20.6~27.1)
@@ -157,6 +161,8 @@ func capImage(_ c: Cap) -> CGImage {
     case .cute, .lead:
         return outlined(c.text, font: font("YoonChildfundkoreaDaeHan", 46), fill: yellow,
                         stroke: .black, strokePct: 12, glow: 8, kern: 0)
+    case .chip:
+        return boxed(c.text, font: font("Pretendard-SemiBold", 40), color: chipInk, box: chipBg, padX: 22, padY: 10)
     case .gloss:
         return outlined(c.text, font: font("Pretendard-Medium", 32), fill: .white,
                         stroke: .black, strokePct: 9, glow: 4)
@@ -182,7 +188,7 @@ func centerY(_ c: Cap) -> CGFloat {
     case .outro: return 0.50
     case .title: return 0.235
     case .main: return c.text.contains("\n") ? 0.625 : 0.64
-    case .box, .cute, .lead, .gloss: return 0.705
+    case .box, .cute, .lead, .chip, .gloss: return 0.705
     case .price: return 0.775
     case .note: return 0.800
     }
@@ -546,6 +552,7 @@ func layerFrame(_ c: Cap, _ img: CGImage) -> CGRect {
     return CGRect(x: (W - w) / 2, y: cy - h / 2, width: w, height: h)
 }
 let mains = caps.filter { $0.style == .main }.map { ($0, layerFrame($0, capImage($0))) }
+var placed: [(Cap, CGRect)] = []
 for c in caps {
     let img = capImage(c)
     var f = layerFrame(c, img)
@@ -557,6 +564,11 @@ for c in caps {
     if c.style == .lead, let m = mains.first(where: { $0.0.start <= c.start && c.start < $0.0.end }) {
         f.origin.y = m.1.maxY - 24 - 24 + 6
     }
+    // chip: right under the emphasis shown at that moment (the chip image has no margin)
+    if c.style == .chip, let b = placed.last(where: { [.box, .cute, .gloss].contains($0.0.style) && $0.0.start <= c.start && c.start < $0.0.end }) {
+        f.origin.y = b.1.minY + 24 - 4 - f.height
+    }
+    placed.append((c, f))
     addTimed(img, frame: f, start: c.start, end: c.end)
 }
 
@@ -597,5 +609,5 @@ func save(_ name: String, _ list: [Cap]) {
 let hook = Cap(start: 0, end: HOOK_END, text: "[저장 필수]\n\(HOOK_LINE1)\n\(HOOK_LINE2)", style: .title)
 save("자막_제품명.srt", [hook] + caps.filter { $0.style == .title || $0.style == .series })
 save("자막_메인.srt", caps.filter { $0.style == .main })
-save("자막_강조.srt", caps.filter { [.box, .cute, .lead, .gloss].contains($0.style) })
+save("자막_강조.srt", caps.filter { [.box, .cute, .lead, .chip, .gloss].contains($0.style) })
 save("자막_가격.srt", caps.filter { $0.style == .price || $0.style == .note })
