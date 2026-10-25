@@ -34,56 +34,57 @@ let cream = NSColor(red: 1.0, green: 0.96, blue: 0.86, alpha: 1)
 
 // MARK: - caption timeline
 
-enum Style { case title, main, box, cute, gloss, price, note, series, outro }
+enum Style { case title, main, box, cute, lead, gloss, price, note, series, outro }
 struct Cap { let start: Double; let end: Double; let text: String; let style: Style }
 
 // ===== 회차 데이터: 돈키호테 쇼핑리스트 2탄 (1탄 데이터는 output/261025/reels_돈키호테 추천템 1탄/reel_1탄.swift) =====
-let END = 36.5
+let END = 35.1
+// 오프닝(훅) 길이: 쇼핑 떼샷부터 바로 시작 (2탄은 쇼핑백 컷을 빼서 2초)
+let HOOK_END = 2.0
 // 엔딩: 원본의 쇼핑 떼샷 구간을 한 번 더 붙이고 마무리 문구를 띄운다
-let OUTRO_FROM = 1.4, OUTRO_LEN = 2.0
+let OUTRO_FROM = 0.0, OUTRO_LEN = 2.0
 let OUTRO_TEXT = "11월 일본 출장 가서\n또 말아올게요!"
 let HOOK_LINE1 = "n번째 재구매중인", HOOK_LINE2 = "돈키호테 재구매템 2탄"
 let SERIES_LABEL = "돈키호테 쇼핑템 2탄"
-let THUMB_TAG = "- 이브/간식/생활템 -"
+let THUMB_TAG = "- 진통제/간식/생활용품 -"
 let caps: [Cap] = [
-    Cap(start: 3.4, end: END, text: SERIES_LABEL, style: .series),
+    Cap(start: 2.0, end: END, text: SERIES_LABEL, style: .series),
 
-    // 1. 이브 (3.4~12.0)
-    Cap(start: 3.4, end: 12.0, text: "1. 이브 쓰리샷 프리미엄", style: .title),
-    Cap(start: 3.6, end: 5.6, text: "일본 이브 진통제,\n아무거나 사오면 안 되는 거 아시죠?", style: .main),
-    Cap(start: 5.6, end: 7.6, text: "이브 반입 금지 소식\n너무 충격이었는데", style: .main),
-    Cap(start: 7.6, end: 9.8, text: "대체품 찾았어요! 쓰리샷 프리미엄", style: .main),
-    Cap(start: 7.6, end: 9.8, text: "*알릴이소프로필아세틸요소 무배합 (성분표 기준)", style: .gloss),
-    Cap(start: 9.8, end: 12.0, text: "저한텐 두통, 생리통에 잘 들어요", style: .main),
-    Cap(start: 9.8, end: 12.0, text: "*반입 가능 여부는 관세청에서 꼭 확인하세요", style: .gloss),
-    Cap(start: 3.4, end: 12.0, text: "이브 쓰리샷 프리미엄 60정 | 2,280엔", style: .price),
+    // 1. 이브 (2.0~10.6)
+    Cap(start: 2.0, end: 10.6, text: "1. 이브 쓰리샷 프리미엄", style: .title),
+    Cap(start: 2.2, end: 6.2, text: "이브 진통제 대부분 국내 반입 금지인데\n쓰리샷 프리미엄은 국내 반입 가능해요", style: .main),
+    Cap(start: 6.2, end: 10.6, text: "타이레놀 잘 안맞는다면 이브 추천해요", style: .main),
+    Cap(start: 6.6, end: 10.6, text: "두통, 생리통 필수템", style: .box),
+    Cap(start: 2.0, end: 10.6, text: "이브 쓰리샷 프리미엄 60정 | 2,280엔", style: .price),
 
-    // 2. 타케노코노사토 (12.0~22.0)
-    Cap(start: 12.0, end: 22.0, text: "2. 타케노코노사토", style: .title),
-    Cap(start: 12.0, end: 15.0, text: "일본 갈 때마다\n몇 박스씩 사오는 과자", style: .main),
-    Cap(start: 12.0, end: 15.0, text: "*타케노코 = 죽순", style: .gloss),
-    Cap(start: 15.0, end: 18.8, text: "오리지널은 아는 맛 그대로!\n초코송이보다 1.8배 고급진 초코향", style: .main),
-    Cap(start: 15.0, end: 18.8, text: "오리지널 | 168엔", style: .price),
-    Cap(start: 18.8, end: 22.0, text: "말차맛은 처음 먹어봤는데", style: .main),
-    Cap(start: 19.2, end: 22.0, text: "말차향이 진짜 진하고 고급져요..", style: .box),
-    Cap(start: 18.8, end: 22.0, text: "말차맛 | 198엔", style: .price),
+    // 2. 타케노코노사토 (10.6~20.6)
+    Cap(start: 10.6, end: 20.6, text: "2. 타케노코노사토", style: .title),
+    Cap(start: 10.6, end: 13.6, text: "일본 갈 때마다\n털어오는 죽순 과자", style: .main),
+    Cap(start: 10.6, end: 13.6, text: "*타케노코 = 죽순", style: .gloss),
+    Cap(start: 13.6, end: 17.4, text: "오리지널은 워낙 유명해서 다들 아시죠", style: .main),
+    Cap(start: 14.0, end: 17.4, text: "초코송이랑 비슷하지만\n훨씬 고급진 맛", style: .box),
+    Cap(start: 13.6, end: 17.4, text: "오리지널 | 168엔", style: .price),
+    Cap(start: 17.4, end: 20.6, text: "말차맛은 처음 먹어봤는데", style: .main),
+    Cap(start: 17.8, end: 20.6, text: "말차향이 진짜 진하고 고급져요..", style: .box),
+    Cap(start: 17.4, end: 20.6, text: "말차맛 | 198엔", style: .price),
 
-    // 3. 불닭 카레 (22.0~28.5)
-    Cap(start: 22.0, end: 28.5, text: "3. 삼양 불닭 카레", style: .title),
-    Cap(start: 22.0, end: 24.4, text: "돈키호테 한정판 불닭 카레?!", style: .main),
-    Cap(start: 24.4, end: 26.9, text: "불닭 러버라면 꼭 사오세요", style: .main),
-    Cap(start: 24.8, end: 26.9, text: "진짜 맛있어요..", style: .box),
-    Cap(start: 26.9, end: 28.5, text: "11월 출장 때\n여러 개 쟁여올 예정", style: .main),
-    Cap(start: 22.0, end: 28.5, text: "삼양 불닭 카레 | 299엔", style: .price),
+    // 3. 불닭 카레 (20.6~27.1)
+    Cap(start: 20.6, end: 27.1, text: "3. 삼양 불닭 카레", style: .title),
+    Cap(start: 20.6, end: 23.0, text: "돈키호테 한정판 불닭 카레?!", style: .main),
+    Cap(start: 23.0, end: 25.5, text: "불닭 러버라면 꼭 사오세요", style: .main),
+    Cap(start: 23.4, end: 25.5, text: "진짜 맛있어요..", style: .box),
+    Cap(start: 25.5, end: 27.1, text: "(11월에 출장 가는데)", style: .lead),
+    Cap(start: 25.5, end: 27.1, text: "여러 개 쟁여오려고요..\n완전 밥도둑", style: .main),
+    Cap(start: 20.6, end: 27.1, text: "삼양 불닭 카레 | 299엔", style: .price),
 
-    // 4. 샤워타월 (28.5~36.5)
-    Cap(start: 28.5, end: END, text: "4. 일본 샤워타월", style: .title),
-    Cap(start: 28.5, end: 30.8, text: "엄마 애착템 일본 샤워타월", style: .main),
-    Cap(start: 30.8, end: 33.0, text: "부드러운 타입부터 하드 타입까지\n골라올 수 있어요", style: .main),
-    Cap(start: 33.0, end: 34.8, text: "남대문 수입상가는 더 비싸서\n일본 갔을 때 사는 거 추천", style: .main),
-    Cap(start: 34.8, end: END, text: "목욕에 진심이라면", style: .main),
-    Cap(start: 35.1, end: END, text: "한 번 꼭 사보세요", style: .box),
-    Cap(start: 28.5, end: END, text: "샤워타월 | 개당 298~598엔", style: .price),
+    // 4. 샤워타월 (27.1~35.1)
+    Cap(start: 27.1, end: END, text: "4. 일본 샤워타월", style: .title),
+    Cap(start: 27.1, end: 29.4, text: "엄마 애착템 일본 샤워타월", style: .main),
+    Cap(start: 29.4, end: 31.6, text: "부드러운 타입부터 하드 타입까지\n골라올 수 있어요", style: .main),
+    Cap(start: 31.6, end: 33.4, text: "남대문 수입상가는 더 비싸서\n일본 갔을 때 사는 거 추천", style: .main),
+    Cap(start: 33.4, end: END, text: "목욕에 진심이라면", style: .main),
+    Cap(start: 33.7, end: END, text: "한 번 꼭 사보세요", style: .box),
+    Cap(start: 27.1, end: END, text: "샤워타월 | 개당 298~598엔", style: .price),
 ]
 
 // MARK: - drawing helpers
@@ -112,7 +113,8 @@ func outlined(_ text: String, font f: NSFont, fill: NSColor, stroke: NSColor, st
     let size = fillAttr.boundingRect(with: CGSize(width: W - 80, height: 2000),
                                      options: [.usesLineFragmentOrigin, .usesFontLeading]).size
     let m: CGFloat = 24
-    let bw = ceil(size.width), bh = ceil(size.height)
+    // +2: a line measured at its exact width can wrap when drawn (e.g. "쟁여오려고요.."), pushing the last line out of the image
+    let bw = ceil(size.width) + 2, bh = ceil(size.height)
     return bitmap(Int(bw + m * 2), Int(bh + m * 2)) { _ in
         let r = CGRect(x: m, y: m, width: bw, height: bh)
         let shadow = NSShadow()
@@ -151,7 +153,7 @@ func capImage(_ c: Cap) -> CGImage {
     case .box:
         return outlined(c.text, font: font("YoonChildfundkoreaDaeHan", 62), fill: yellow,
                         stroke: .black, strokePct: 12, glow: 10, kern: 0)
-    case .cute:
+    case .cute, .lead:
         return outlined(c.text, font: font("YoonChildfundkoreaDaeHan", 46), fill: yellow,
                         stroke: .black, strokePct: 12, glow: 8, kern: 0)
     case .gloss:
@@ -179,7 +181,7 @@ func centerY(_ c: Cap) -> CGFloat {
     case .outro: return 0.50
     case .title: return 0.235
     case .main: return c.text.contains("\n") ? 0.625 : 0.64
-    case .box, .cute, .gloss: return 0.705
+    case .box, .cute, .lead, .gloss: return 0.705
     case .price: return 0.775
     case .note: return 0.800
     }
@@ -240,8 +242,8 @@ func brightened(_ img: CGImage) -> CGImage {
 }
 
 let hookCharCount = hookLines.reduce(0) { $0 + $1.0.count }
-// typewriter timing: first character at 0.15s, one every 0.05s; hook shown until 3.4s
-let typeStart = 0.15, perChar = 0.05, hookEnd = 3.4
+// typewriter timing: first character at 0.15s, one every 0.05s; hook shown until HOOK_END
+let typeStart = 0.15, perChar = 0.05, hookEnd = HOOK_END
 
 // 3-tier hook text. thumbnail: above the plush toys; video intro: screen center.
 // visible: how many characters are typed so far (typewriter); lines stay left-anchored so text does not shift.
@@ -474,8 +476,8 @@ func addTimed(_ img: CGImage, frame: CGRect, start: Double, end: Double, fadeIn:
     overlay.addSublayer(l)
 }
 
-// hook: same text as the thumbnail, over the video, 0 ~ 3.4s
-// hook: dim layer + typewriter text (one character every 0.05s), 0 ~ 3.4s
+// hook: same text as the thumbnail, over the video, 0 ~ hookEnd
+// hook: dim layer + typewriter text (one character every 0.05s), 0 ~ hookEnd
 let full = CGRect(x: 0, y: 0, width: W, height: H)
 // dim as a plain color layer (no full-screen bitmap)
 let dimLayer = CALayer()
@@ -484,9 +486,9 @@ dimLayer.backgroundColor = NSColor.black.withAlphaComponent(0.38).cgColor
 dimLayer.opacity = 0
 let dimAnim = CAKeyframeAnimation(keyPath: "opacity")
 dimAnim.values = [1, 1, 0]
-dimAnim.keyTimes = [0, NSNumber(value: 3.3 / 3.4), 1]
+dimAnim.keyTimes = [0, NSNumber(value: (hookEnd - 0.1) / hookEnd), 1]
 dimAnim.beginTime = AVCoreAnimationBeginTimeAtZero
-dimAnim.duration = 3.4
+dimAnim.duration = hookEnd
 dimAnim.isRemovedOnCompletion = false
 dimLayer.add(dimAnim, forKey: "show")
 overlay.addSublayer(dimLayer)
@@ -514,7 +516,7 @@ contentsAnim.keyTimes = keyTimes
 contentsAnim.calculationMode = .discrete
 let typeFade = CAKeyframeAnimation(keyPath: "opacity")
 typeFade.values = [1, 1, 0]
-typeFade.keyTimes = [0, NSNumber(value: 3.3 / hookEnd), 1]
+typeFade.keyTimes = [0, NSNumber(value: (hookEnd - 0.1) / hookEnd), 1]
 let typeGroup = CAAnimationGroup()
 contentsAnim.duration = hookEnd
 typeFade.duration = hookEnd
@@ -549,6 +551,10 @@ for c in caps {
     // emphasis sits right under the main caption shown at that moment (images carry 24px margins)
     if [.box, .cute, .gloss].contains(c.style), let m = mains.first(where: { $0.0.start <= c.start && c.start < $0.0.end }) {
         f.origin.y = m.1.minY + 24 + 24 - 6 - f.height
+    }
+    // lead: small line right above the main caption (e.g. "(11월에 출장 가는데)")
+    if c.style == .lead, let m = mains.first(where: { $0.0.start <= c.start && c.start < $0.0.end }) {
+        f.origin.y = m.1.maxY - 24 - 24 + 6
     }
     addTimed(img, frame: f, start: c.start, end: c.end)
 }
@@ -587,8 +593,8 @@ func srt(_ list: [Cap]) -> String {
 func save(_ name: String, _ list: [Cap]) {
     try! srt(list).write(toFile: "\(outDir)/\(name)", atomically: true, encoding: .utf8)
 }
-let hook = Cap(start: 0, end: 3.4, text: "[저장 필수]\n\(HOOK_LINE1)\n\(HOOK_LINE2)", style: .title)
+let hook = Cap(start: 0, end: HOOK_END, text: "[저장 필수]\n\(HOOK_LINE1)\n\(HOOK_LINE2)", style: .title)
 save("자막_제품명.srt", [hook] + caps.filter { $0.style == .title || $0.style == .series })
 save("자막_메인.srt", caps.filter { $0.style == .main })
-save("자막_강조.srt", caps.filter { [.box, .cute, .gloss].contains($0.style) })
+save("자막_강조.srt", caps.filter { [.box, .cute, .lead, .gloss].contains($0.style) })
 save("자막_가격.srt", caps.filter { $0.style == .price || $0.style == .note })
