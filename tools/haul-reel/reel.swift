@@ -125,8 +125,8 @@ let caps: [Cap] = (SERIES_LABEL.isEmpty ? [] : [Cap(start: HOOK_END, end: END, t
     Cap(start: 16.3, end: 19.1, text: "엉덩이 덮는 기장이라", style: .main),
     Cap(start: 16.6, end: 19.1, text: "와이드 팬츠랑 찰떡", style: .box),
 
-    // 4. 체크 안감 야상 (19.1~23.9, 엔딩 23.9~25.4는 야상 숄더백 컷이 이어짐) — 제품명 미확인, 가격은 택 기준
-    Cap(start: 19.1, end: END, text: "체크 안감 야상 | 139,900원", style: .title),
+    // 4. 코튼 100% 숏 파카 (19.1~23.9, 엔딩 23.9~25.4는 숄더백 컷이 이어짐)
+    Cap(start: 19.1, end: END, text: "코튼 100% 숏 파카 | 139,900원", style: .title),
     Cap(start: 19.1, end: 20.3, text: "화사한 베이지 컬러 야상", style: .main),
     Cap(start: 20.3, end: 21.5, text: "허리 스트링으로 핏 조절 가능하고", style: .main),
     Cap(start: 21.5, end: END, text: "열면 체크 안감이 포인트", style: .main),
