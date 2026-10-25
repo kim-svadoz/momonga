@@ -43,7 +43,7 @@ let END = 35.1
 let HOOK_END = 2.0
 // 엔딩: 원본의 쇼핑 떼샷 구간을 한 번 더 붙이고 마무리 문구를 띄운다
 let OUTRO_FROM = 0.0, OUTRO_LEN = 2.0
-let OUTRO_TEXT = "11월 일본 출장 가서\n또 말아올게요!"
+let OUTRO_TEXT = "11월에 일본 또 가는데\n파산 예정.. 💸"
 let HOOK_LINE1 = "n번째 재구매중인", HOOK_LINE2 = "돈키호테 재구매템 2탄"
 let SERIES_LABEL = "돈키호테 쇼핑템 2탄"
 let THUMB_TAG = "- 진통제/간식/생활용품 -"
@@ -73,7 +73,7 @@ let caps: [Cap] = [
     Cap(start: 20.6, end: 23.0, text: "돈키호테 한정판 불닭 카레?!", style: .main),
     Cap(start: 23.0, end: 25.5, text: "불닭 러버라면 꼭 사오세요", style: .main),
     Cap(start: 23.4, end: 25.5, text: "진짜 맛있어요..", style: .box),
-    Cap(start: 25.5, end: 27.1, text: "(11월에 출장 가는데)", style: .lead),
+    Cap(start: 25.5, end: 27.1, text: "11월에 출장 가는데", style: .lead),
     Cap(start: 25.5, end: 27.1, text: "여러 개 쟁여오려고요..\n완전 밥도둑", style: .main),
     Cap(start: 20.6, end: 27.1, text: "삼양 불닭 카레 | 299엔", style: .price),
 
