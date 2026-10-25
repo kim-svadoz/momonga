@@ -52,7 +52,8 @@ let caps: [Cap] = [
 
     // 1. 이브 (2.0~10.6)
     Cap(start: 2.0, end: 10.6, text: "1. 이브 쓰리샷 프리미엄", style: .title),
-    Cap(start: 2.2, end: 6.2, text: "이브 진통제 대부분 국내 반입 금지인데\n쓰리샷 프리미엄은 국내 반입 가능해요", style: .main),
+    Cap(start: 2.2, end: 6.2, text: "이브 진통제 대부분\n국내 반입 금지인데", style: .main),
+    Cap(start: 3.4, end: 6.2, text: "쓰리샷 프리미엄은\n국내 반입 가능해요", style: .box),
     Cap(start: 6.2, end: 10.6, text: "타이레놀 잘 안맞는다면 이브 추천해요", style: .main),
     Cap(start: 6.6, end: 10.6, text: "두통, 생리통 필수템", style: .box),
     Cap(start: 2.0, end: 10.6, text: "이브 쓰리샷 프리미엄 60정 | 2,280엔", style: .price),
