@@ -65,7 +65,9 @@ THUMB_ONLY=1 THUMB_FONT=<PostScript 이름> THUMB_OUT=<경로.jpg> swift tools/h
 | `THUMB_FONT_NAME` 썸네일 큰 제목 글꼴 | BookkMyungjo-Bd | BookkMyungjo-Bd |
 | `THUMB_TITLE_Y` 썸네일 제목 첫 줄 높이 | 0 (오프닝과 같음) | 0.43 (가슴) |
 | `THUMB_TAG_CHIP` / `THUMB_TAG_Y` / `THUMB_TAG_BG` 꼬리표 네모 띠 | false | true / 0.565 / 민트 |
-| `TITLE_BOTTOM` 제품명 위치 | false (위쪽 큰 명조) | true (아래쪽 작게, 가격과 한 줄) |
+| `TITLE_BOTTOM` 제품명 모양 | false (위쪽 큰 명조) | true (작게, 가격과 한 줄) |
+| `TITLE_Y` 제품명·가격 줄 높이 | — | 0.125 (맨 위) |
+| `SERIES_LABEL` 맨 위 라벨 | "돈키호테 쇼핑템 N탄" | "" (없음) |
 | `DISPLAY_FONT` / `MAIN_FONT` | BookkMyungjo-Bd / Pretendard-SemiBold | Pretendard-SemiBold / Pretendard-Medium |
 
 ## 알아둘 점

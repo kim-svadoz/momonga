@@ -97,13 +97,15 @@ let DISPLAY_FONT = "Pretendard-SemiBold", MAIN_FONT = "Pretendard-Medium"
 let TITLE_BOTTOM = true
 // true: 맨 위 시리즈 라벨을 색 배경 띠로
 let SERIES_CHIP = true
-let SERIES_LABEL = "162cm 직장인 | 자라 맨즈 디깅"
+// 맨 위 시리즈 라벨 ("" = 없음)
+let SERIES_LABEL = ""
+// 제품명·가격 줄 높이 (화면 위에서부터 비율). TITLE_BOTTOM일 때 0.775 = 아래쪽, 0.125 = 맨 위 라벨 자리
+let TITLE_Y: CGFloat = 0.125
 let THUMB_TAG = "두툼한 초겨울 아우터 모음zip."
 // true: 썸네일 꼬리표를 네모 배경 띠로 (THUMB_TAG_Y 높이, THUMB_TAG_BG 색), false: 제목 밑 손글씨
 let THUMB_TAG_CHIP = true, THUMB_TAG_Y: CGFloat = 0.545
 let THUMB_TAG_BG = NSColor(red: 0.62, green: 0.90, blue: 0.84, alpha: 1)
-let caps: [Cap] = [
-    Cap(start: HOOK_END, end: END, text: SERIES_LABEL, style: .series),
+let caps: [Cap] = (SERIES_LABEL.isEmpty ? [] : [Cap(start: HOOK_END, end: END, text: SERIES_LABEL, style: .series)]) + [
 
     // 1. 버건디 퀼팅 재킷 (3.2~9.3)
     Cap(start: 3.2, end: 9.3, text: "릴렉스핏 퀼팅 재킷 | 149,900원", style: .title),
@@ -233,7 +235,7 @@ func centerY(_ c: Cap) -> CGFloat {
     switch c.style {
     case .series: return 0.125
     case .outro: return 0.50
-    case .title: return TITLE_BOTTOM ? 0.775 : 0.235
+    case .title: return TITLE_BOTTOM ? TITLE_Y : 0.235
     case .main: return c.text.contains("\n") ? 0.625 : 0.64
     case .box, .cute, .lead, .chip, .gloss: return 0.705
     case .price: return 0.775
