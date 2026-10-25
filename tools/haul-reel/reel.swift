@@ -71,11 +71,13 @@ let HOOK_LINE1_Y: CGFloat = 0.41
 let THUMB_LOGO = "ZARA"
 let THUMB_LOGO_COLOR = NSColor.black
 // 썸네일 큰 제목: "" = 오프닝과 같은 두 줄. 값이 있으면 썸네일만 이 문구로 ("/" = 줄바꿈, 둘째 줄이 더 크다)
-let THUMB_TITLE = "자라 맨즈 아우터/이건 사지 마세요"
+let THUMB_TITLE = "자라 맨즈 아우터/이건 사지 마세요.."
+// 썸네일 제목 첫 줄 높이 (화면 위에서부터 비율, 가운데 기준). 0 = 오프닝 문구와 같은 높이
+let THUMB_TITLE_Y: CGFloat = 0.35
 // 썸네일에 훅 태그(고정 타겟 키워드)를 넣을지
 let THUMB_SHOW_TAG = false
 // 썸네일 큰 제목 글꼴 (환경변수 THUMB_FONT가 있으면 그게 우선)
-let THUMB_FONT_NAME = "ChosunGu"
+let THUMB_FONT_NAME = "BookkMyungjo-Bd"
 let HOOK_LINE1 = "자라 맨즈에서 찾은", HOOK_LINE2 = "여자 출근룩 아우터"
 // 별·점 스티커 (썸네일·오프닝·엔딩). 하울 릴스에만 쓴다
 let STICKERS = false
@@ -86,7 +88,9 @@ let TITLE_BOTTOM = true
 // true: 맨 위 시리즈 라벨을 색 배경 띠로
 let SERIES_CHIP = true
 let SERIES_LABEL = "162 출근룩 | 자라 맨즈 아우터"
-let THUMB_TAG = "- 두툼한 초겨울 아우터 모음zip. -"
+let THUMB_TAG = "두툼한 초겨울 아우터 모음집"
+// true: 썸네일 꼬리표를 화면 아래쪽 흰 네모 배경 띠로 (THUMB_TAG_Y 높이), false: 제목 밑 손글씨
+let THUMB_TAG_CHIP = true, THUMB_TAG_Y: CGFloat = 0.80
 let caps: [Cap] = [
     Cap(start: HOOK_END, end: END, text: SERIES_LABEL, style: .series),
 
@@ -397,7 +401,8 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
                     // up to two lines; the second (the punch line) is bigger. Each shrinks to fit the width.
                     let parts = THUMB_TITLE.split(separator: "/").map { $0.trimmingCharacters(in: .whitespaces) }
                     let sizes: [CGFloat] = parts.count > 1 ? [72, 112] : [l.2]
-                    let lineYs: [CGFloat] = parts.count > 1 ? [ys[1] - 0.035, ys[1] + 0.03] : [ys[1]]
+                    let y0 = THUMB_TITLE_Y > 0 ? THUMB_TITLE_Y : ys[1] - 0.035
+                    let lineYs: [CGFloat] = parts.count > 1 ? [y0, y0 + 0.065] : [THUMB_TITLE_Y > 0 ? THUMB_TITLE_Y : ys[1]]
                     for (k, text) in parts.enumerated() {
                         var size = sizes[k]
                         while NSAttributedString(string: text, attributes: [.font: font(lineFont, size), .kern: l.4]).size().width > W - 100 { size -= 2 }
@@ -422,7 +427,13 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
         }
         // thumbnail only: star stickers around the edges (kockc.o style) + small cute tag
         if tag && STICKERS { drawStickers(ctx) }
-        if tag {
+        if tag && THUMB_TAG_CHIP {
+            let t = NSAttributedString(string: THUMB_TAG, attributes: [.font: font("Pretendard-Medium", 46), .foregroundColor: PILL_INK])
+            let sz = t.size()
+            let origin = CGPoint(x: (W - sz.width) / 2, y: H - THUMB_TAG_Y * H - sz.height / 2)
+            drawPill(ctx, CGRect(x: origin.x - 28, y: origin.y - 12, width: sz.width + 56, height: sz.height + 24))
+            t.draw(at: origin)
+        } else if tag {
             let tag = NSAttributedString(string: THUMB_TAG, attributes: [
                 .font: font("YoonChildfundkoreaDaeHan", 54), .foregroundColor: NSColor.white, .shadow: shadow])
             let sz = tag.size()
