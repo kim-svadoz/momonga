@@ -8,7 +8,7 @@
 1. `brand/profile.md` — 나는 누구고, 누구에게, 무엇을 파는가
 2. `brand/style-guide.md` — 폰트·색·썸네일·자막 규칙 (통일감의 기준)
 3. `brand/voice.md` — 내 말투
-   - 릴스·하울 영상 자막을 다룰 때는 `brand/caption-rules.md` (자막 적는 기호 `!` `( )` `^( )` `*` `₩` `/`)도 읽는다.
+   - 릴스·하울 영상 자막을 다룰 때는 `brand/caption-rules.md` (자막 적는 기호 `!` `( )` `^( )` `[ ]` `*` `₩` `/`)도 읽는다.
 4. 해당 채널 스킬 (`.claude/skills/<채널>/SKILL.md`)
 
 ## 채널별 스킬
