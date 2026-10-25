@@ -37,56 +37,53 @@ let cream = NSColor(red: 1.0, green: 0.96, blue: 0.86, alpha: 1)
 enum Style { case title, main, box, cute, gloss, price, note, series, outro }
 struct Cap { let start: Double; let end: Double; let text: String; let style: Style }
 
-let END = 42.83
+// ===== 회차 데이터: 돈키호테 쇼핑리스트 2탄 (1탄 데이터는 output/261025/reels_돈키호테 추천템 1탄/reel_1탄.swift) =====
+let END = 36.5
 // 엔딩: 원본의 쇼핑 떼샷 구간을 한 번 더 붙이고 마무리 문구를 띄운다
 let OUTRO_FROM = 1.4, OUTRO_LEN = 2.0
-let OUTRO_TEXT = "곧 2탄도 가져올게요!"
+let OUTRO_TEXT = "11월 일본 출장 가서\n또 말아올게요!"
+let HOOK_LINE1 = "n번째 재구매중인", HOOK_LINE2 = "돈키호테 재구매템 2탄"
+let SERIES_LABEL = "돈키호테 쇼핑템 2탄"
+let THUMB_TAG = "- 이브/간식/생활템 -"
 let caps: [Cap] = [
-    Cap(start: 3.4, end: END, text: "돈키호테 쇼핑템 1탄", style: .series),
+    Cap(start: 3.4, end: END, text: SERIES_LABEL, style: .series),
 
-    // 1. 치이카와
-    Cap(start: 3.6, end: 15.0, text: "1. 치이카와 인형 키링", style: .title),
-    Cap(start: 3.6, end: 6.5, text: "일본 갔는데 치이카와 못참지..", style: .main),
-    Cap(start: 6.5, end: 9.4, text: "복슬복슬 꼬리까지 귀여운 모몽가", style: .main),
-    Cap(start: 6.5, end: 9.4, text: "모몽가 1,200엔", style: .price),
-    Cap(start: 9.4, end: 11.9, text: "머리에 수건 얹은 온천 치이카와", style: .main),
-    Cap(start: 9.4, end: 11.9, text: "온천 치이카와 1,400엔", style: .price),
-    Cap(start: 11.9, end: 14.0, text: "사루보보ver. 하치와레까지!", style: .main),
-    Cap(start: 11.9, end: 14.0, text: "(*사루보보 = 일본 행운의 인형)", style: .gloss),
-    Cap(start: 11.9, end: 14.0, text: "사루보보 하치와레 1,540엔", style: .price),
-    Cap(start: 11.9, end: 14.0, text: "(나고야 관광지에서 구매)", style: .note),
-    Cap(start: 14.0, end: 15.0, text: "가방에 달면 포인트 완성!", style: .main),
+    // 1. 이브 (3.4~12.0)
+    Cap(start: 3.4, end: 12.0, text: "1. 이브 쓰리샷 프리미엄", style: .title),
+    Cap(start: 3.6, end: 5.6, text: "일본 이브 진통제,\n아무거나 사오면 안 되는 거 아시죠?", style: .main),
+    Cap(start: 5.6, end: 7.6, text: "이브 반입 금지 소식\n너무 충격이었는데", style: .main),
+    Cap(start: 7.6, end: 9.8, text: "대체품 찾았어요! 쓰리샷 프리미엄", style: .main),
+    Cap(start: 7.6, end: 9.8, text: "*알릴이소프로필아세틸요소 무배합 (성분표 기준)", style: .gloss),
+    Cap(start: 9.8, end: 12.0, text: "저한텐 두통, 생리통에 잘 들어요", style: .main),
+    Cap(start: 9.8, end: 12.0, text: "*반입 가능 여부는 관세청에서 꼭 확인하세요", style: .gloss),
+    Cap(start: 3.4, end: 12.0, text: "이브 쓰리샷 프리미엄 60정 | 2,280엔", style: .price),
 
-    // 2. 아누아 세럼
-    Cap(start: 15.4, end: 20.8, text: "2. 아누아 아젤라익 세럼", style: .title),
-    Cap(start: 15.4, end: 20.8, text: "어성초, 티트리 성분 좋아하는\n민감성 피부라면", style: .main),
-    Cap(start: 17.2, end: 20.8, text: "이거 진짜 추천해요..", style: .box),
-    Cap(start: 15.4, end: 20.8, text: "아누아 아젤라익애씨드 15 세럼 30ml | 2,346엔", style: .price),
+    // 2. 타케노코노사토 (12.0~22.0)
+    Cap(start: 12.0, end: 22.0, text: "2. 타케노코노사토", style: .title),
+    Cap(start: 12.0, end: 15.0, text: "일본 갈 때마다\n몇 박스씩 사오는 과자", style: .main),
+    Cap(start: 12.0, end: 15.0, text: "*타케노코 = 죽순", style: .gloss),
+    Cap(start: 15.0, end: 18.8, text: "오리지널은 아는 맛 그대로!\n초코송이보다 1.8배 고급진 초코향", style: .main),
+    Cap(start: 15.0, end: 18.8, text: "오리지널 | 168엔", style: .price),
+    Cap(start: 18.8, end: 22.0, text: "말차맛은 처음 먹어봤는데", style: .main),
+    Cap(start: 19.2, end: 22.0, text: "말차향이 진짜 진하고 고급져요..", style: .box),
+    Cap(start: 18.8, end: 22.0, text: "말차맛 | 198엔", style: .price),
 
-    // 3. 아누아 마스크
-    Cap(start: 20.8, end: 25.6, text: "3. 아누아 시카 마스크팩", style: .title),
-    Cap(start: 20.8, end: 23.2, text: "같은 라인 마스크팩도 세트로 샀는데", style: .main),
-    Cap(start: 23.2, end: 25.6, text: "밤에 팩 하고 자면", style: .main),
-    Cap(start: 23.6, end: 25.6, text: "다음날 피부결이 진짜 매끈해져요..", style: .box),
-    Cap(start: 20.8, end: 25.6, text: "아누아 시카 세럼 인 마스크 7매 | 700엔", style: .price),
+    // 3. 불닭 카레 (22.0~28.5)
+    Cap(start: 22.0, end: 28.5, text: "3. 삼양 불닭 카레", style: .title),
+    Cap(start: 22.0, end: 24.4, text: "돈키호테 한정판 불닭 카레?!", style: .main),
+    Cap(start: 24.4, end: 26.9, text: "불닭 러버라면 꼭 사오세요", style: .main),
+    Cap(start: 24.8, end: 26.9, text: "진짜 맛있어요..", style: .box),
+    Cap(start: 26.9, end: 28.5, text: "11월 출장 때\n여러 개 쟁여올 예정", style: .main),
+    Cap(start: 22.0, end: 28.5, text: "삼양 불닭 카레 | 299엔", style: .price),
 
-    // 4. 루루룬
-    Cap(start: 26.2, end: 34.8, text: "4. 루루룬 하이드라 EX", style: .title),
-    Cap(start: 26.2, end: 28.6, text: "매번 재구매해오는 루루룬 팩", style: .main),
-    Cap(start: 28.6, end: 31.0, text: "보습 탄력 관리에 좋고", style: .main),
-    Cap(start: 31.0, end: 32.9, text: "속건조 싹 잡아줘서", style: .main),
-    Cap(start: 32.9, end: 34.8, text: "일본 여행 갈 때마다\n쟁여오는 재구매템", style: .main),
-    Cap(start: 32.9, end: 34.8, text: "(선물하기도 좋아요!)", style: .box),
-    Cap(start: 26.2, end: 34.8, text: "루루룬 하이드라 EX 마스크 7매 | 900엔", style: .price),
-
-    // 5. 클럽 파우더
-    Cap(start: 34.8, end: END, text: "5. 클럽 스핀 파우더", style: .title),
-    Cap(start: 34.8, end: 37.4, text: "오후만 되면 T존에 기름기 올라온다?", style: .main),
-    Cap(start: 35.8, end: 37.4, text: "이거 진짜 추천", style: .box),
-    Cap(start: 37.4, end: 39.8, text: "수부지 피부라서\n쌩얼에도 파우더 필수인데", style: .main),
-    Cap(start: 39.8, end: END, text: "이거 사용한 뒤로\n하루종일 피부가 훨씬 보송보송", style: .main),
-    Cap(start: 39.8, end: END, text: "(향도 좋아요!)", style: .cute),
-    Cap(start: 34.8, end: END, text: "클럽 스핀 파우더 | 1,780엔", style: .price),
+    // 4. 샤워타월 (28.5~36.5)
+    Cap(start: 28.5, end: END, text: "4. 일본 샤워타월", style: .title),
+    Cap(start: 28.5, end: 30.8, text: "엄마 애착템 일본 샤워타월", style: .main),
+    Cap(start: 30.8, end: 33.0, text: "부드러운 타입부터 하드 타입까지\n골라올 수 있어요", style: .main),
+    Cap(start: 33.0, end: 34.8, text: "남대문 수입상가는 더 비싸서\n일본 갔을 때 사는 거 추천", style: .main),
+    Cap(start: 34.8, end: END, text: "목욕에 진심이라면", style: .main),
+    Cap(start: 35.1, end: END, text: "한 번 꼭 사보세요", style: .box),
+    Cap(start: 28.5, end: END, text: "샤워타월 | 개당 298~598엔", style: .price),
 ]
 
 // MARK: - drawing helpers
@@ -190,8 +187,8 @@ func centerY(_ c: Cap) -> CGFloat {
 
 let hookLines: [(String, String, CGFloat, NSColor, CGFloat)] = [
     ("[저장 필수]", "Pretendard-ExtraBold", 60, yellow, -1),
-    ("n번째 재구매중인", titleFont, 86, .white, -3),
-    ("돈키호테 쇼핑리스트 1탄", titleFont, 88, yellow, -3),
+    (HOOK_LINE1, titleFont, 86, .white, -3),
+    (HOOK_LINE2, titleFont, 88, yellow, -3),
 ]
 // 5-point star sticker; (x, y) are fractions from the top-left
 func star(_ ctx: CGContext, _ x: CGFloat, _ y: CGFloat, _ r: CGFloat, _ fill: NSColor, _ angle: CGFloat) {
@@ -284,7 +281,7 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
         // thumbnail only: star stickers around the edges (kockc.o style) + small cute tag
         if tag { drawStickers(ctx) }
         if tag {
-            let tag = NSAttributedString(string: "- 치이카와굿즈/뷰티템 -", attributes: [
+            let tag = NSAttributedString(string: THUMB_TAG, attributes: [
                 .font: font("YoonChildfundkoreaDaeHan", 54), .foregroundColor: NSColor.white, .shadow: shadow])
             let sz = tag.size()
             tag.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - (centered ? 0.615 : 0.345) * H - sz.height / 2))
@@ -590,7 +587,7 @@ func srt(_ list: [Cap]) -> String {
 func save(_ name: String, _ list: [Cap]) {
     try! srt(list).write(toFile: "\(outDir)/\(name)", atomically: true, encoding: .utf8)
 }
-let hook = Cap(start: 0, end: 3.4, text: "[저장 필수]\nn번째 재구매중인\n돈키호테 쇼핑리스트 1탄", style: .title)
+let hook = Cap(start: 0, end: 3.4, text: "[저장 필수]\n\(HOOK_LINE1)\n\(HOOK_LINE2)", style: .title)
 save("자막_제품명.srt", [hook] + caps.filter { $0.style == .title || $0.style == .series })
 save("자막_메인.srt", caps.filter { $0.style == .main })
 save("자막_강조.srt", caps.filter { [.box, .cute, .gloss].contains($0.style) })
