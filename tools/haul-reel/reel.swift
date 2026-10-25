@@ -40,58 +40,56 @@ let chipInk = NSColor(red: 0.12, green: 0.16, blue: 0.08, alpha: 1)
 enum Style { case title, main, box, cute, lead, chip, gloss, price, note, series, outro }
 struct Cap { let start: Double; let end: Double; let text: String; let style: Style }
 
-// ===== 회차 데이터: 돈키호테 쇼핑리스트 2탄 (1탄 데이터는 output/261025/reels_돈키호테 추천템 1탄/reel_1탄.swift) =====
-let END = 35.1
-// 오프닝(훅) 길이: 쇼핑 떼샷부터 바로 시작 (2탄은 쇼핑백 컷을 빼서 2초)
-let HOOK_END = 2.0
-// 엔딩: 원본의 쇼핑 떼샷 구간을 한 번 더 붙이고 마무리 문구를 띄운다
-let OUTRO_FROM = 0.0, OUTRO_LEN = 2.0
-let OUTRO_TEXT = "파산 각.. 💸"
+// ===== 회차 데이터: 자라 맨즈 아우터 (162 출근룩) =====
+// 이전 회차: output/261025/reels_돈키호테 추천템 1탄/reel_1탄.swift, output/261025/reels_돈키호테 추천템 2탄/reel_2탄.swift
+let END = 30.5
+// 오프닝(훅) 길이: 첫 착장(버건디) 걸어오는 컷 위에 훅 문구
+let HOOK_END = 2.5
+// 엔딩: 버건디 전신 컷(7.8~9.8)을 한 번 더 붙이고 댓글 유도 문구
+let OUTRO_FROM = 7.8, OUTRO_LEN = 2.0
+let OUTRO_TEXT = "댓글에 '자라' 💌"
 // 엔딩 큰 글씨 위에 작게 붙는 줄 ("" = 없음)
-let OUTRO_LEAD = "11월에 일본 또 가는데"
-let HOOK_LINE1 = "n번째 재구매중인", HOOK_LINE2 = "돈키호테 재구매템 2탄"
-let SERIES_LABEL = "돈키호테 쇼핑템 2탄"
-let THUMB_TAG = "- 진통제/간식/생활용품 -"
+let OUTRO_LEAD = "제품명·가격·사이즈 궁금하면"
+// 훅 맨 윗줄 (작은 노랑 태그). 하울 릴스는 "[저장 필수]", 패션 릴스는 고정 타겟 키워드
+let HOOK_TAG = "[162 출근룩]"
+let HOOK_LINE1 = "요즘 자라는", HOOK_LINE2 = "맨즈가 더 예쁨"
+let SERIES_LABEL = "162 출근룩 | 자라 맨즈 아우터"
+let THUMB_TAG = "- 두툼한 겨울 아우터 4벌 -"
 let caps: [Cap] = [
-    Cap(start: 2.0, end: END, text: SERIES_LABEL, style: .series),
+    Cap(start: HOOK_END, end: END, text: SERIES_LABEL, style: .series),
 
-    // 1. 이브 (2.0~10.6)
-    Cap(start: 2.0, end: 10.6, text: "1. 이브 쓰리샷 프리미엄", style: .title),
-    Cap(start: 2.2, end: 6.2, text: "이브 진통제 대부분\n국내 반입 금지인데", style: .main),
-    Cap(start: 3.4, end: 6.2, text: "쓰리샷 프리미엄은\n국내 반입 가능해요", style: .box),
-    Cap(start: 6.2, end: 10.6, text: "타이레놀 잘 안맞는다면 이브 추천해요", style: .main),
-    Cap(start: 6.6, end: 10.6, text: "두통, 생리통 필수템", style: .box),
-    Cap(start: 2.0, end: 10.6, text: "이브 쓰리샷 프리미엄 60정 | 2,280엔", style: .price),
+    // 1. 버건디 퀼팅 재킷 (0~9.8, 훅 0~2.5)
+    Cap(start: 2.5, end: 9.8, text: "1. 버건디 퀼팅 재킷", style: .title),
+    Cap(start: 2.5, end: 5.1, text: "버건디 컬러 하나로\n분위기 끝", style: .main),
+    Cap(start: 5.1, end: 7.8, text: "안에 퀼팅 안감이\n두툼하게 들어있어요", style: .main),
+    Cap(start: 5.5, end: 7.8, text: "초가을 말고 지금 입기 딱!", style: .box),
+    Cap(start: 7.8, end: 9.8, text: "162cm, 남자 S 입었어요", style: .main),
+    Cap(start: 2.5, end: 9.8, text: "릴렉스핏 퀼팅 재킷 | 149,900원", style: .price),
 
-    // 2. 타케노코노사토 (10.6~20.6)
-    Cap(start: 10.6, end: 20.6, text: "2. 타케노코노사토", style: .title),
-    Cap(start: 10.6, end: 13.6, text: "일본 갈 때마다\n털어오는 죽순 과자", style: .main),
-    Cap(start: 10.6, end: 13.6, text: "*타케노코 = 죽순", style: .gloss),
-    Cap(start: 13.6, end: 17.4, text: "오리지널은 워낙 유명해서 다들 아시죠", style: .main),
-    Cap(start: 14.0, end: 17.4, text: "초코송이랑 비슷하지만\n훨씬 고급진 맛", style: .box),
-    Cap(start: 13.6, end: 17.4, text: "오리지널 | 168엔", style: .price),
-    Cap(start: 17.4, end: 20.6, text: "말차맛은 처음 먹어봤는데", style: .main),
-    Cap(start: 17.8, end: 20.6, text: "말차향이 진짜 진하고 고급져요..", style: .box),
-    Cap(start: 18.4, end: 20.6, text: "말차 러버들 추천!", style: .chip),
-    Cap(start: 17.4, end: 20.6, text: "말차맛 | 198엔", style: .price),
+    // 2. 바버맛 퀼팅 재킷 (9.8~17.3)
+    Cap(start: 9.8, end: 17.3, text: "2. 바버맛 퀼팅 재킷", style: .title),
+    Cap(start: 9.8, end: 12.0, text: "바버 느낌 퀼팅 재킷이\n10만원대?!", style: .main),
+    Cap(start: 12.0, end: 14.4, text: "다이아 퀼팅이\n도톰하게 들어가서", style: .main),
+    Cap(start: 12.3, end: 14.4, text: "요즘 날씨에 딱", style: .box),
+    Cap(start: 14.4, end: 15.5, text: "카라랑 소매는 코듀로이", style: .main),
+    Cap(start: 15.5, end: 17.3, text: "디테일까지 바버 맛..", style: .main),
+    Cap(start: 9.8, end: 17.3, text: "콤비 기하학적 퀼팅 재킷 | 109,900원", style: .price),
 
-    // 3. 불닭 카레 (20.6~27.1)
-    Cap(start: 20.6, end: 27.1, text: "3. 삼양 불닭 카레", style: .title),
-    Cap(start: 20.6, end: 23.0, text: "돈키호테 한정판 불닭 카레?!", style: .main),
-    Cap(start: 23.0, end: 25.5, text: "불닭 러버라면 꼭 사오세요", style: .main),
-    Cap(start: 23.4, end: 25.5, text: "진짜 맛있어요..", style: .box),
-    Cap(start: 25.5, end: 27.1, text: "11월에 출장 가는데", style: .lead),
-    Cap(start: 25.5, end: 27.1, text: "여러 개 쟁여오려고요..\n완전 밥도둑", style: .main),
-    Cap(start: 20.6, end: 27.1, text: "삼양 불닭 카레 | 299엔", style: .price),
+    // 3. 페이크 레더 재킷 (17.3~23.8)
+    Cap(start: 17.3, end: 23.8, text: "3. 페이크 레더 재킷", style: .title),
+    Cap(start: 17.3, end: 19.8, text: "출근룩에 하나 있으면\n든든한 레더 재킷", style: .main),
+    Cap(start: 19.8, end: 21.8, text: "엉덩이 덮는 기장이라", style: .main),
+    Cap(start: 20.1, end: 21.8, text: "와이드 팬츠랑 찰떡", style: .box),
+    Cap(start: 21.8, end: 23.8, text: "블랙, 브라운 두 가지 컬러", style: .main),
+    Cap(start: 17.3, end: 23.8, text: "릴렉스핏 페이크 레더 | 149,900원", style: .price),
 
-    // 4. 샤워타월 (27.1~35.1)
-    Cap(start: 27.1, end: END, text: "4. 일본 샤워타월", style: .title),
-    Cap(start: 27.1, end: 29.4, text: "엄마 애착템 일본 샤워타월", style: .main),
-    Cap(start: 29.4, end: 31.6, text: "부드러운 타입부터 하드 타입까지\n골라올 수 있어요", style: .main),
-    Cap(start: 31.6, end: 33.4, text: "남대문 수입상가는 더 비싸서\n일본 갔을 때 사는 거 추천", style: .main),
-    Cap(start: 33.4, end: END, text: "목욕에 진심이라면", style: .main),
-    Cap(start: 33.7, end: END, text: "한 번 꼭 사보세요", style: .box),
-    Cap(start: 27.1, end: END, text: "샤워타월 | 개당 298~598엔", style: .price),
+    // 4. 체크 안감 야상 (23.8~30.5) — 제품명 미확인, 가격은 택 기준
+    Cap(start: 23.8, end: END, text: "4. 체크 안감 야상", style: .title),
+    Cap(start: 23.8, end: 25.9, text: "허리 스트링으로\n핏 조절 가능", style: .main),
+    Cap(start: 25.9, end: 28.1, text: "열면 체크 안감이 보여서", style: .main),
+    Cap(start: 26.2, end: 28.1, text: "포인트로 예뻐요", style: .box),
+    Cap(start: 28.1, end: END, text: "큰 숄더백이랑 들면\n출근룩 완성", style: .main),
+    Cap(start: 23.8, end: END, text: "체크 안감 야상 | 139,900원", style: .price),
 ]
 
 // MARK: - drawing helpers
@@ -197,7 +195,7 @@ func centerY(_ c: Cap) -> CGFloat {
 }
 
 let hookLines: [(String, String, CGFloat, NSColor, CGFloat)] = [
-    ("[저장 필수]", "Pretendard-ExtraBold", 60, yellow, -1),
+    (HOOK_TAG, "Pretendard-ExtraBold", 60, yellow, -1),
     (HOOK_LINE1, titleFont, 86, .white, -3),
     (HOOK_LINE2, titleFont, 88, yellow, -3),
 ]
@@ -587,7 +585,12 @@ vc.renderSize = CGSize(width: W, height: H)
 vc.frameDuration = CMTime(value: 1, timescale: 30)
 let inst = AVMutableVideoCompositionInstruction()
 inst.timeRange = total
-inst.layerInstructions = [AVMutableVideoCompositionLayerInstruction(assetTrack: vTrack)]
+// 아이폰 원본(4K 세로, 회전 정보 포함)도 1080×1920 화면에 꽉 차게: 회전 적용 후 가로 폭 기준으로 축소
+let layerInst = AVMutableVideoCompositionLayerInstruction(assetTrack: vTrack)
+let srcSize = vSrc.naturalSize.applying(vSrc.preferredTransform)
+let fitScale = W / abs(srcSize.width)
+layerInst.setTransform(vSrc.preferredTransform.concatenating(CGAffineTransform(scaleX: fitScale, y: fitScale)), at: .zero)
+inst.layerInstructions = [layerInst]
 vc.instructions = [inst]
 vc.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: parent)
 
@@ -616,7 +619,7 @@ func srt(_ list: [Cap]) -> String {
 func save(_ name: String, _ list: [Cap]) {
     try! srt(list).write(toFile: "\(outDir)/\(name)", atomically: true, encoding: .utf8)
 }
-let hook = Cap(start: 0, end: HOOK_END, text: "[저장 필수]\n\(HOOK_LINE1)\n\(HOOK_LINE2)", style: .title)
+let hook = Cap(start: 0, end: HOOK_END, text: "\(HOOK_TAG)\n\(HOOK_LINE1)\n\(HOOK_LINE2)", style: .title)
 save("자막_제품명.srt", [hook] + caps.filter { $0.style == .title || $0.style == .series })
 save("자막_메인.srt", caps.filter { $0.style == .main })
 save("자막_강조.srt", caps.filter { [.box, .cute, .lead, .chip, .gloss].contains($0.style) })
