@@ -33,7 +33,7 @@ let cream = NSColor(red: 1.0, green: 0.96, blue: 0.86, alpha: 1)
 
 // MARK: - caption timeline
 
-enum Style { case title, main, box, gloss, price, note, series }
+enum Style { case title, main, box, cute, gloss, price, note, series }
 struct Cap { let start: Double; let end: Double; let text: String; let style: Style }
 
 let END = 42.83
@@ -79,8 +79,9 @@ let caps: [Cap] = [
     Cap(start: 34.8, end: END, text: "5. 클럽 스핀 파우더", style: .title),
     Cap(start: 34.8, end: 37.4, text: "오후만 되면 T존에 기름기 올라온다?", style: .main),
     Cap(start: 35.8, end: 37.4, text: "이거 진짜 추천", style: .box),
-    Cap(start: 37.4, end: 39.8, text: "원래 오후만 되면 기름 올라오는데", style: .main),
-    Cap(start: 39.8, end: END, text: "하루종일 피부 컨디션이\n훨씬 보송해지는 느낌 (향도 좋아요!)", style: .main),
+    Cap(start: 37.4, end: 39.8, text: "수부지 피부라서\n쌩얼에도 파우더 필수인데", style: .main),
+    Cap(start: 39.8, end: END, text: "이거 사용한 뒤로\n하루종일 피부가 훨씬 보송보송", style: .main),
+    Cap(start: 39.8, end: END, text: "(향도 좋아요!)", style: .cute),
     Cap(start: 34.8, end: END, text: "클럽 스핀 파우더 | 1,780엔", style: .price),
 ]
 
@@ -149,6 +150,9 @@ func capImage(_ c: Cap) -> CGImage {
     case .box:
         return outlined(c.text, font: font("YoonChildfundkoreaDaeHan", 62), fill: yellow,
                         stroke: .black, strokePct: 12, glow: 10, kern: 0)
+    case .cute:
+        return outlined(c.text, font: font("YoonChildfundkoreaDaeHan", 46), fill: yellow,
+                        stroke: .black, strokePct: 12, glow: 8, kern: 0)
     case .gloss:
         return outlined(c.text, font: font("Pretendard-Medium", 32), fill: .white,
                         stroke: .black, strokePct: 9, glow: 4)
@@ -170,7 +174,7 @@ func centerY(_ c: Cap) -> CGFloat {
     case .series: return 0.125
     case .title: return 0.235
     case .main: return c.text.contains("\n") ? 0.625 : 0.64
-    case .box, .gloss: return 0.705
+    case .box, .cute, .gloss: return 0.705
     case .price: return 0.775
     case .note: return 0.800
     }
@@ -382,7 +386,7 @@ for c in caps {
     let img = capImage(c)
     var f = layerFrame(c, img)
     // emphasis sits right under the main caption shown at that moment (images carry 24px margins)
-    if c.style == .box || c.style == .gloss, let m = mains.first(where: { $0.0.start <= c.start && c.start < $0.0.end }) {
+    if [.box, .cute, .gloss].contains(c.style), let m = mains.first(where: { $0.0.start <= c.start && c.start < $0.0.end }) {
         f.origin.y = m.1.minY + 24 + 24 - 6 - f.height
     }
     addTimed(img, frame: f, start: c.start, end: c.end)
@@ -425,5 +429,5 @@ func save(_ name: String, _ list: [Cap]) {
 let hook = Cap(start: 0, end: 3.4, text: "[저장 필수]\nn번째 재구매중인\n돈키호테 쇼핑리스트 1탄", style: .title)
 save("자막_제품명.srt", [hook] + caps.filter { $0.style == .title || $0.style == .series })
 save("자막_메인.srt", caps.filter { $0.style == .main })
-save("자막_강조.srt", caps.filter { $0.style == .box || $0.style == .gloss })
+save("자막_강조.srt", caps.filter { [.box, .cute, .gloss].contains($0.style) })
 save("자막_가격.srt", caps.filter { $0.style == .price || $0.style == .note })
