@@ -232,6 +232,8 @@ func drawStickers(_ ctx: CGContext) {
 }
 
 let hookCharCount = hookLines.reduce(0) { $0 + $1.0.count }
+// typewriter timing: first character at 0.15s, one every 0.05s; hook shown until 3.4s
+let typeStart = 0.15, perChar = 0.05, hookEnd = 3.4
 
 // 3-tier hook text. thumbnail: above the plush toys; video intro: screen center.
 // visible: how many characters are typed so far (typewriter); lines stay left-anchored so text does not shift.
@@ -293,18 +295,99 @@ let vSrc = asset.tracks(withMediaType: .video)[0]
 let range = CMTimeRange(start: .zero, duration: vSrc.timeRange.duration)
 let vTrack = comp.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)!
 try! vTrack.insertTimeRange(range, of: vSrc, at: .zero)
-if let aSrc = asset.tracks(withMediaType: .audio).first {
-    let aTrack = comp.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)!
-    try! aTrack.insertTimeRange(CMTimeRange(start: .zero, duration: aSrc.timeRange.duration), of: aSrc, at: .zero)
-    try! aTrack.insertTimeRange(CMTimeRange(start: CMTime(seconds: OUTRO_FROM, preferredTimescale: 600),
-                                            duration: CMTime(seconds: OUTRO_LEN, preferredTimescale: 600)),
-                                of: aSrc, at: range.duration)
-}
+// 원본 소리는 쓰지 않는다 (효과음만 넣음)
 let outroStart = CMTimeGetSeconds(range.duration)
 try! vTrack.insertTimeRange(CMTimeRange(start: CMTime(seconds: OUTRO_FROM, preferredTimescale: 600),
                                         duration: CMTime(seconds: OUTRO_LEN, preferredTimescale: 600)),
                             of: vSrc, at: range.duration)
 let total = CMTimeRange(start: .zero, duration: comp.duration)
+
+// MARK: - sound effects (synthesized like apps/shorts-editor/sfx.js, no files or licenses needed)
+
+let SR = 48000.0
+var mix = [Float](repeating: 0, count: Int(CMTimeGetSeconds(total.duration) * SR) + 1)
+
+func envAt(_ t: Double, attack: Double, peak: Double, decay: Double) -> Double {
+    if t < 0 { return 0 }
+    if t < attack { return 0.0001 * pow(peak / 0.0001, t / attack) }
+    let d = t - attack
+    if d > decay { return 0 }
+    return peak * pow(0.0001 / peak, d / decay)
+}
+func tone(at t0: Double, square: Bool = false, f0: Double, f1: Double? = nil, dur: Double,
+          attack: Double = 0.003, peak: Double = 0.5) {
+    let start = Int(t0 * SR), n = Int((attack + dur + 0.05) * SR)
+    var phase = 0.0
+    for i in 0..<n where start + i < mix.count {
+        let t = Double(i) / SR
+        var f = f0
+        if let f1 = f1 { f = f0 * pow(f1 / f0, min(1, t / (dur * 0.6))) }
+        phase += 2 * .pi * f / SR
+        let v = square ? (sin(phase) >= 0 ? 1.0 : -1.0) : sin(phase)
+        mix[start + i] += Float(v * envAt(t, attack: attack, peak: peak, decay: dur))
+    }
+}
+// RBJ biquad on white noise
+func noise(at t0: Double, dur: Double, highpass: Bool = false, freq: Double, q: Double = 1,
+           attack: Double = 0.002, peak: Double = 0.5) {
+    let w = 2 * .pi * freq / SR, alpha = sin(w) / (2 * q), cw = cos(w)
+    var b0, b1, b2: Double
+    if highpass { b0 = (1 + cw) / 2; b1 = -(1 + cw); b2 = (1 + cw) / 2 }
+    else { b0 = alpha; b1 = 0; b2 = -alpha }
+    let a0 = 1 + alpha, a1 = -2 * cw, a2 = 1 - alpha
+    var x1 = 0.0, x2 = 0.0, y1 = 0.0, y2 = 0.0
+    let start = Int(t0 * SR), n = Int((attack + dur + 0.05) * SR)
+    for i in 0..<n where start + i < mix.count {
+        let x = Double.random(in: -1...1)
+        let y = (b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2) / a0
+        x2 = x1; x1 = x; y2 = y1; y1 = y
+        mix[start + i] += Float(y * envAt(Double(i) / SR, attack: attack, peak: peak, decay: dur))
+    }
+}
+func sfxClick(_ t: Double) {
+    noise(at: t, dur: 0.018, highpass: true, freq: 3500, peak: 0.7)
+    tone(at: t, f0: 2400, dur: 0.025, peak: 0.25)
+}
+func sfxKey(_ t: Double, _ k: Int) {
+    let p = 0.4 + Double(k % 3) * 0.1
+    noise(at: t, dur: 0.025, freq: 2800 + Double(k % 4) * 400, q: 2, peak: p)
+    tone(at: t, f0: 140, dur: 0.035, peak: p * 0.5)
+}
+func sfxDing(_ t: Double) {
+    for (f, p) in [(1568.0, 0.45), (3136.0, 0.15), (4704.0, 0.06), (2352.0, 0.08)] {
+        tone(at: t, f0: f, dur: 2.0, attack: 0.002, peak: p * 0.8)
+    }
+}
+func sfxCoin(_ t: Double) {
+    tone(at: t, square: true, f0: 988, dur: 0.07, peak: 0.3)
+    tone(at: t + 0.075, square: true, f0: 1319, dur: 0.5, peak: 0.3)
+}
+
+// 1) 타자기: 오프닝 글자마다  2) 클릭: 제품 번호 바뀔 때  3) 딩: 노랑 강조  4) 코인: 엔딩 문구
+for n in 1...hookCharCount { sfxKey(typeStart + Double(n - 1) * perChar, n) }
+for c in caps where c.style == .title { sfxClick(c.start) }
+for c in caps where c.style == .box || c.style == .cute { sfxDing(c.start) }
+sfxCoin(outroStart + 0.1)
+
+// soft limit so overlapping sounds don't clip
+let peakAbs = mix.map { abs($0) }.max() ?? 1
+if peakAbs > 0.95 { let g = 0.95 / peakAbs; for i in mix.indices { mix[i] *= g } }
+
+let sfxURL = URL(fileURLWithPath: NSTemporaryDirectory() + "haul_sfx.caf")
+try? FileManager.default.removeItem(at: sfxURL)
+let fmt = AVAudioFormat(standardFormatWithSampleRate: SR, channels: 1)!
+let buf = AVAudioPCMBuffer(pcmFormat: fmt, frameCapacity: AVAudioFrameCount(mix.count))!
+buf.frameLength = AVAudioFrameCount(mix.count)
+mix.withUnsafeBufferPointer { buf.floatChannelData![0].update(from: $0.baseAddress!, count: mix.count) }
+do {
+    let file = try AVAudioFile(forWriting: sfxURL, settings: fmt.settings)
+    try file.write(from: buf)
+}
+let sfxAsset = AVURLAsset(url: sfxURL)
+let sfxSrc = sfxAsset.tracks(withMediaType: .audio)[0]
+let sfxTrack = comp.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)!
+try! sfxTrack.insertTimeRange(CMTimeRange(start: .zero, duration: min(sfxSrc.timeRange.duration, total.duration)),
+                              of: sfxSrc, at: .zero)
 
 let gen = AVAssetImageGenerator(asset: asset)
 gen.appliesPreferredTrackTransform = true
@@ -359,7 +442,6 @@ func band(_ img: CGImage) -> CGImage {
     return bitmap(Int(W), Int(bandH)) { ctx in ctx.draw(cut, in: CGRect(x: 0, y: 0, width: W, height: bandH)) }
 }
 let bandFrame = CGRect(x: 0, y: H - bandTop - bandH, width: W, height: bandH)
-let typeStart = 0.15, perChar = 0.05, hookEnd = 3.4
 // one layer, contents switched per typed character (discrete keyframes), then fade out at the end
 var frames: [CGImage] = [bitmap(Int(W), Int(bandH)) { _ in }]
 var keyTimes: [NSNumber] = [0]
