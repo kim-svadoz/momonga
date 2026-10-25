@@ -40,13 +40,15 @@ let chipInk = NSColor(red: 0.12, green: 0.16, blue: 0.08, alpha: 1)
 enum Style { case title, main, box, cute, lead, chip, gloss, price, note, series, outro }
 struct Cap { let start: Double; let end: Double; let text: String; let style: Style }
 
-// ===== 회차 데이터: 자라 맨즈 아우터 (162 출근룩) v2 — 컷 빠르게, 별 스티커 없음 =====
+// ===== 회차 데이터: 자라 맨즈 아우터 (162 출근룩) v3 — 오프닝 4벌 숏컷, 컷 빠르게, 별 스티커 없음 =====
 // 이전 회차: output/261025/reels_돈키호테 추천템 1탄/reel_1탄.swift, output/261025/reels_돈키호테 추천템 2탄/reel_2탄.swift
-let END = 20.7
-// 오프닝(훅) 길이: 첫 착장(버건디) 전신·상반신 컷 위에 훅 문구
-let HOOK_END = 2.0
-// 엔딩: 버건디 전신 컷(0.0~1.4)을 한 번 더 붙이고 댓글 유도 문구
-let OUTRO_FROM = 0.0, OUTRO_LEN = 1.5
+let END = 23.9
+// 오프닝(훅) 길이: 1~4번 착장 전신 숏컷(0.8초씩) 위에 훅 문구. 다 쳐진 뒤 2초 가까이 머문다
+let HOOK_END = 3.2
+// 타자기 속도: 한 글자 간격(초)
+let HOOK_PER_CHAR = 0.04
+// 엔딩: 버건디 전신 컷(3.2~4.6)을 한 번 더 붙이고 댓글 유도 문구
+let OUTRO_FROM = 3.2, OUTRO_LEN = 1.5
 let OUTRO_TEXT = "댓글에 '자라' 💌"
 // 엔딩 큰 글씨 위에 작게 붙는 줄 ("" = 없음)
 let OUTRO_LEAD = "제품명·가격·사이즈 궁금하면"
@@ -68,34 +70,34 @@ let THUMB_TAG = "- 두툼한 겨울 아우터 4벌 -"
 let caps: [Cap] = [
     Cap(start: HOOK_END, end: END, text: SERIES_LABEL, style: .series),
 
-    // 1. 버건디 퀼팅 재킷 (0~6.1, 훅 0~2.0)
-    Cap(start: 2.0, end: 6.1, text: "릴렉스핏 퀼팅 재킷 | 149,900원", style: .title),
-    Cap(start: 2.0, end: 2.9, text: "버건디 컬러 하나로\n분위기 끝", style: .main),
-    Cap(start: 2.9, end: 3.8, text: "162cm, 남자 S 입었어요", style: .main),
-    Cap(start: 3.8, end: 6.1, text: "안에 퀼팅 안감이\n두툼하게 들어있어요", style: .main),
-    Cap(start: 4.1, end: 6.1, text: "초가을 말고 지금 입기 딱!", style: .box),
+    // 1. 버건디 퀼팅 재킷 (3.2~9.3)
+    Cap(start: 3.2, end: 9.3, text: "릴렉스핏 퀼팅 재킷 | 149,900원", style: .title),
+    Cap(start: 3.2, end: 5.0, text: "버건디 컬러 하나로\n분위기 끝", style: .main),
+    Cap(start: 5.0, end: 7.0, text: "162cm, 남자 S 입었어요", style: .main),
+    Cap(start: 7.0, end: 9.3, text: "안에 퀼팅 안감이\n두툼하게 들어있어요", style: .main),
+    Cap(start: 7.3, end: 9.3, text: "초가을 말고 지금 입기 딱!", style: .box),
 
-    // 2. 바버맛 퀼팅 재킷 (6.1~11.1)
-    Cap(start: 6.1, end: 11.1, text: "콤비 기하학적 퀼팅 재킷 | 109,900원", style: .title),
-    Cap(start: 6.1, end: 7.3, text: "바버 느낌 퀼팅 재킷이\n10만원대?!", style: .main),
-    Cap(start: 7.3, end: 8.3, text: "다이아 퀼팅이\n도톰하게 들어가서", style: .main),
-    Cap(start: 7.5, end: 8.3, text: "요즘 날씨에 딱", style: .box),
-    Cap(start: 8.3, end: 9.6, text: "카라랑 소매는 코듀로이", style: .main),
-    Cap(start: 9.6, end: 11.1, text: "디테일까지 바버 맛..", style: .main),
+    // 2. 바버맛 퀼팅 재킷 (9.3~14.3)
+    Cap(start: 9.3, end: 14.3, text: "콤비 기하학적 퀼팅 재킷 | 109,900원", style: .title),
+    Cap(start: 9.3, end: 10.5, text: "바버 느낌 퀼팅 재킷이\n10만원대?!", style: .main),
+    Cap(start: 10.5, end: 11.5, text: "다이아 퀼팅이\n도톰하게 들어가서", style: .main),
+    Cap(start: 10.7, end: 11.5, text: "요즘 날씨에 딱", style: .box),
+    Cap(start: 11.5, end: 12.8, text: "카라랑 소매는 코듀로이", style: .main),
+    Cap(start: 12.8, end: 14.3, text: "디테일까지 바버 맛..", style: .main),
 
-    // 3. 페이크 레더 재킷 (11.1~15.9)
-    Cap(start: 11.1, end: 15.9, text: "릴렉스핏 페이크 레더 | 149,900원", style: .title),
-    Cap(start: 11.1, end: 12.4, text: "출근룩에 하나 있으면\n든든한 레더 재킷", style: .main),
-    Cap(start: 12.4, end: 14.2, text: "엉덩이 덮는 기장이라", style: .main),
-    Cap(start: 12.6, end: 14.2, text: "와이드 팬츠랑 찰떡", style: .box),
-    Cap(start: 14.2, end: 15.9, text: "블랙, 브라운 두 가지 컬러", style: .main),
+    // 3. 페이크 레더 재킷 (14.3~19.1)
+    Cap(start: 14.3, end: 19.1, text: "릴렉스핏 페이크 레더 | 149,900원", style: .title),
+    Cap(start: 14.3, end: 15.6, text: "출근룩에 하나 있으면\n든든한 레더 재킷", style: .main),
+    Cap(start: 15.6, end: 17.4, text: "엉덩이 덮는 기장이라", style: .main),
+    Cap(start: 15.8, end: 17.4, text: "와이드 팬츠랑 찰떡", style: .box),
+    Cap(start: 17.4, end: 19.1, text: "블랙, 브라운 두 가지 컬러", style: .main),
 
-    // 4. 체크 안감 야상 (15.9~20.7) — 제품명 미확인, 가격은 택 기준
-    Cap(start: 15.9, end: END, text: "체크 안감 야상 | 139,900원", style: .title),
-    Cap(start: 15.9, end: 17.1, text: "허리 스트링으로\n핏 조절 가능", style: .main),
-    Cap(start: 17.1, end: 18.6, text: "열면 체크 안감이 보여서", style: .main),
-    Cap(start: 17.3, end: 18.6, text: "포인트로 예뻐요", style: .box),
-    Cap(start: 18.6, end: END, text: "큰 숄더백이랑 들면\n출근룩 완성", style: .main),
+    // 4. 체크 안감 야상 (19.1~23.9) — 제품명 미확인, 가격은 택 기준
+    Cap(start: 19.1, end: END, text: "체크 안감 야상 | 139,900원", style: .title),
+    Cap(start: 19.1, end: 20.3, text: "허리 스트링으로\n핏 조절 가능", style: .main),
+    Cap(start: 20.3, end: 21.8, text: "열면 체크 안감이 보여서", style: .main),
+    Cap(start: 20.5, end: 21.8, text: "포인트로 예뻐요", style: .box),
+    Cap(start: 21.8, end: END, text: "큰 숄더백이랑 들면\n출근룩 완성", style: .main),
 ]
 
 // MARK: - drawing helpers
@@ -263,7 +265,7 @@ func brightened(_ img: CGImage) -> CGImage {
 
 let hookCharCount = hookLines.reduce(0) { $0 + $1.0.count }
 // typewriter timing: first character at 0.15s, one every 0.05s; hook shown until HOOK_END
-let typeStart = 0.15, perChar = 0.05, hookEnd = HOOK_END
+let typeStart = 0.15, perChar = HOOK_PER_CHAR, hookEnd = HOOK_END
 
 // 3-tier hook text. thumbnail: above the plush toys; video intro: screen center.
 // visible: how many characters are typed so far (typewriter); lines stay left-anchored so text does not shift.
