@@ -2,6 +2,7 @@ import AVFoundation
 import AppKit
 import CoreText
 import QuartzCore
+import CoreImage
 import ImageIO
 import UniformTypeIdentifiers
 
@@ -231,6 +232,16 @@ func drawStickers(_ ctx: CGContext) {
     dot(ctx, 0.93, 0.66, 9)
 }
 
+// thumbnail brightness: THUMB_DIM = darkening over the photo (0~1), THUMB_EV = exposure boost of the photo
+let thumbDim = CGFloat(Double(env["THUMB_DIM"] ?? "") ?? 0.38)
+let thumbEV = Double(env["THUMB_EV"] ?? "") ?? 0
+func brightened(_ img: CGImage) -> CGImage {
+    guard thumbEV != 0, let f = CIFilter(name: "CIExposureAdjust") else { return img }
+    f.setValue(CIImage(cgImage: img), forKey: kCIInputImageKey)
+    f.setValue(thumbEV, forKey: kCIInputEVKey)
+    return CIContext().createCGImage(f.outputImage!, from: CIImage(cgImage: img).extent)!
+}
+
 let hookCharCount = hookLines.reduce(0) { $0 + $1.0.count }
 // typewriter timing: first character at 0.15s, one every 0.05s; hook shown until 3.4s
 let typeStart = 0.15, perChar = 0.05, hookEnd = 3.4
@@ -239,7 +250,7 @@ let typeStart = 0.15, perChar = 0.05, hookEnd = 3.4
 // visible: how many characters are typed so far (typewriter); lines stay left-anchored so text does not shift.
 func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim: Bool = true, tag: Bool = false) -> CGImage {
     return bitmap(Int(W), Int(H)) { ctx in
-        if let bg = background { ctx.draw(bg, in: CGRect(x: 0, y: 0, width: W, height: H)) }
+        if let bg = background { ctx.draw(brightened(bg), in: CGRect(x: 0, y: 0, width: W, height: H)) }
         if dim && !centered {
             let grad = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
                                   colors: [NSColor.black.withAlphaComponent(0.62).cgColor,
@@ -248,7 +259,7 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
                                   locations: [0, 0.55, 1])!
             ctx.drawLinearGradient(grad, start: CGPoint(x: 0, y: H), end: CGPoint(x: 0, y: H * 0.55), options: [])
         } else if dim {
-            ctx.setFillColor(NSColor.black.withAlphaComponent(0.38).cgColor)
+            ctx.setFillColor(NSColor.black.withAlphaComponent(thumbDim).cgColor)
             ctx.fill(CGRect(x: 0, y: 0, width: W, height: H))
         }
 
