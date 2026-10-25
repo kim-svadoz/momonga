@@ -90,7 +90,7 @@ let SERIES_CHIP = true
 let SERIES_LABEL = "162 출근룩 | 자라 맨즈 아우터"
 let THUMB_TAG = "두툼한 초겨울 아우터 모음zip."
 // true: 썸네일 꼬리표를 네모 배경 띠로 (THUMB_TAG_Y 높이, THUMB_TAG_BG 색), false: 제목 밑 손글씨
-let THUMB_TAG_CHIP = true, THUMB_TAG_Y: CGFloat = 0.565
+let THUMB_TAG_CHIP = true, THUMB_TAG_Y: CGFloat = 0.545
 let THUMB_TAG_BG = NSColor(red: 0.62, green: 0.90, blue: 0.84, alpha: 1)
 let caps: [Cap] = [
     Cap(start: HOOK_END, end: END, text: SERIES_LABEL, style: .series),
@@ -401,9 +401,9 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
                 if i == 1 {
                     // up to two lines; the second (the punch line) is bigger. Each shrinks to fit the width.
                     let parts = THUMB_TITLE.split(separator: "/").map { $0.trimmingCharacters(in: .whitespaces) }
-                    let sizes: [CGFloat] = parts.count > 1 ? [72, 112] : [l.2]
+                    let sizes: [CGFloat] = parts.count > 1 ? [56, 112] : [l.2]
                     let y0 = THUMB_TITLE_Y > 0 ? THUMB_TITLE_Y : ys[1] - 0.035
-                    let lineYs: [CGFloat] = parts.count > 1 ? [y0, y0 + 0.065] : [THUMB_TITLE_Y > 0 ? THUMB_TITLE_Y : ys[1]]
+                    let lineYs: [CGFloat] = parts.count > 1 ? [y0, y0 + 0.058] : [THUMB_TITLE_Y > 0 ? THUMB_TITLE_Y : ys[1]]
                     for (k, text) in parts.enumerated() {
                         var size = sizes[k]
                         while NSAttributedString(string: text, attributes: [.font: font(lineFont, size), .kern: l.4]).size().width > W - 100 { size -= 2 }
@@ -429,11 +429,11 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
         // thumbnail only: star stickers around the edges (kockc.o style) + small cute tag
         if tag && STICKERS { drawStickers(ctx) }
         if tag && THUMB_TAG_CHIP {
-            let t = NSAttributedString(string: THUMB_TAG, attributes: [.font: font("Pretendard-Medium", 46), .foregroundColor: PILL_INK])
+            let t = NSAttributedString(string: THUMB_TAG, attributes: [.font: font("Pretendard-Medium", 30), .foregroundColor: PILL_INK])
             let sz = t.size()
             let origin = CGPoint(x: (W - sz.width) / 2, y: H - THUMB_TAG_Y * H - sz.height / 2)
             ctx.setFillColor(THUMB_TAG_BG.cgColor)
-            ctx.fill(CGRect(x: origin.x - 28, y: origin.y - 12, width: sz.width + 56, height: sz.height + 24))
+            ctx.fill(CGRect(x: origin.x - 18, y: origin.y - 8, width: sz.width + 36, height: sz.height + 16))
             t.draw(at: origin)
         } else if tag {
             let tag = NSAttributedString(string: THUMB_TAG, attributes: [
