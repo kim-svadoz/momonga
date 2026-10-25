@@ -52,9 +52,11 @@ let HOOK_PER_CHAR = 0.04
 let OUTRO_FROM = 3.2, OUTRO_LEN = 1.5
 // true: 엔딩을 따로 붙이지 않고 컷편집본의 마지막 OUTRO_LEN초(이어지는 장면) 위에 엔딩 문구를 띄운다. OUTRO_FROM은 안 씀
 let OUTRO_INLINE = true
-let OUTRO_TEXT = "댓글에 '자라' 남겨주세요"
+let OUTRO_TEXT = "댓글에 '자라' 남겨주시면"
 // 엔딩 큰 글씨 위에 작게 붙는 줄 ("" = 없음)
-let OUTRO_LEAD = "제품명, 가격, 착용 사이즈 등 궁금하신 분들은"
+let OUTRO_LEAD = ""
+// 엔딩 큰 글씨 밑에 작게 붙는 줄 ("" = 없음, "\n" = 줄바꿈)
+let OUTRO_TAIL = "영상 속 제품 정보, 착용 사이즈까지\n정리해서 보내드릴게요 💌"
 // 엔딩 글자 크기: 큰 줄 / 위 작은 줄 (하울 릴스: 84 / 54)
 let OUTRO_SIZE: CGFloat = 70, OUTRO_LEAD_SIZE: CGFloat = 40
 // 훅 맨 윗줄 (작은 태그). 하울 릴스는 "[저장 필수]", 패션 릴스는 고정 타겟 키워드
@@ -752,6 +754,13 @@ if !OUTRO_LEAD.isEmpty {
                            stroke: NSColor(white: 0.08, alpha: 1), strokePct: 9, glow: 14, kern: -1)
     let lw = CGFloat(leadImg.width), lh = CGFloat(leadImg.height)
     addTimed(leadImg, frame: CGRect(x: (W - lw) / 2, y: outroFrame.maxY - 24 - 24 + 14, width: lw, height: lh),
+             start: outroStart + 0.1, end: outroEnd, fadeIn: 0.2, fadeOut: 0.01)
+}
+if !OUTRO_TAIL.isEmpty {
+    let tailImg = outlined(OUTRO_TAIL, font: font(DISPLAY_FONT, OUTRO_LEAD_SIZE), fill: cream,
+                           stroke: NSColor(white: 0.08, alpha: 1), strokePct: 9, glow: 14, kern: -1)
+    let tw = CGFloat(tailImg.width), th = CGFloat(tailImg.height)
+    addTimed(tailImg, frame: CGRect(x: (W - tw) / 2, y: outroFrame.minY + 24 + 24 - 10 - th, width: tw, height: th),
              start: outroStart + 0.1, end: outroEnd, fadeIn: 0.2, fadeOut: 0.01)
 }
 
