@@ -42,6 +42,16 @@ THUMB_ONLY=1 THUMB_FONT=<PostScript 이름> THUMB_OUT=<경로.jpg> swift tools/h
   - typing: 오프닝 내내 (0.05초~) / click: 제품 번호가 바뀔 때 / transition: 제품 사이 빈 화면(0.3초 이상 틈)이 있으면 앞 제품 끝 0.3초 전 / ding: 첫 노랑 강조 자막 / outro: 엔딩 문구 0.2초 뒤
   - 효과음을 바꾸려면 같은 이름의 m4a 파일만 바꿔 넣는다. 합성 효과음(`SFX=1`)은 촌스럽다는 피드백으로 쓰지 않는다.
 
+## 회차별 설정 (reel.swift 회차 데이터)
+
+| 설정 | 하울 릴스 | 패션 피팅 릴스 |
+| --- | --- | --- |
+| `STICKERS` 별 스티커 | true | false |
+| `HOOK_TAG_CHIP` 훅 태그 노랑 띠 | false | true |
+| `SERIES_CHIP` 맨 위 라벨 노랑 띠 | false | true |
+| `TITLE_BOTTOM` 제품명 위치 | false (위쪽 큰 명조) | true (아래쪽 작게, 가격과 한 줄) |
+| `DISPLAY_FONT` / `MAIN_FONT` | BookkMyungjo-Bd / Pretendard-SemiBold | Pretendard-SemiBold / Pretendard-Medium |
+
 ## 알아둘 점
 
 - 아주 짧은(0.05초) 레이어를 여러 개 쓰면 내보낼 때 빠진다. 타자기 효과는 레이어 하나의 contents를 키프레임으로 바꾸는 방식이다.

@@ -40,56 +40,62 @@ let chipInk = NSColor(red: 0.12, green: 0.16, blue: 0.08, alpha: 1)
 enum Style { case title, main, box, cute, lead, chip, gloss, price, note, series, outro }
 struct Cap { let start: Double; let end: Double; let text: String; let style: Style }
 
-// ===== 회차 데이터: 자라 맨즈 아우터 (162 출근룩) =====
+// ===== 회차 데이터: 자라 맨즈 아우터 (162 출근룩) v2 — 컷 빠르게, 별 스티커 없음 =====
 // 이전 회차: output/261025/reels_돈키호테 추천템 1탄/reel_1탄.swift, output/261025/reels_돈키호테 추천템 2탄/reel_2탄.swift
-let END = 30.5
-// 오프닝(훅) 길이: 첫 착장(버건디) 걸어오는 컷 위에 훅 문구
-let HOOK_END = 2.5
-// 엔딩: 버건디 전신 컷(7.8~9.8)을 한 번 더 붙이고 댓글 유도 문구
-let OUTRO_FROM = 7.8, OUTRO_LEN = 2.0
+let END = 20.7
+// 오프닝(훅) 길이: 첫 착장(버건디) 전신·상반신 컷 위에 훅 문구
+let HOOK_END = 2.0
+// 엔딩: 버건디 전신 컷(0.0~1.4)을 한 번 더 붙이고 댓글 유도 문구
+let OUTRO_FROM = 0.0, OUTRO_LEN = 1.5
 let OUTRO_TEXT = "댓글에 '자라' 💌"
 // 엔딩 큰 글씨 위에 작게 붙는 줄 ("" = 없음)
 let OUTRO_LEAD = "제품명·가격·사이즈 궁금하면"
-// 훅 맨 윗줄 (작은 노랑 태그). 하울 릴스는 "[저장 필수]", 패션 릴스는 고정 타겟 키워드
-let HOOK_TAG = "[162 출근룩]"
-let HOOK_LINE1 = "요즘 자라는", HOOK_LINE2 = "맨즈가 더 예쁨"
+// 훅 맨 윗줄 (작은 태그). 하울 릴스는 "[저장 필수]", 패션 릴스는 고정 타겟 키워드
+let HOOK_TAG = "162cm 출근룩 아우터 찾기"
+// true: 태그 글자 뒤에 색 배경(노랑 띠 + 진한 글자), false: 노랑 글자만
+let HOOK_TAG_CHIP = true
+let HOOK_LINE1 = "자라 맨즈에서 찾은", HOOK_LINE2 = "여자 출근룩 아우터"
+// 별·점 스티커 (썸네일·오프닝·엔딩). 하울 릴스에만 쓴다
+let STICKERS = false
+// 글꼴: 훅 큰 제목·엔딩 문구 / 메인 자막 (하울 릴스: BookkMyungjo-Bd / Pretendard-SemiBold)
+let DISPLAY_FONT = "Pretendard-SemiBold", MAIN_FONT = "Pretendard-Medium"
+// true: 제품명을 위쪽 큰 명조 대신 아래쪽 작은 글씨로 (패션 피팅 영상). 이때 제품명 줄에 가격을 같이 쓴다
+let TITLE_BOTTOM = true
+// true: 맨 위 시리즈 라벨을 색 배경 띠로
+let SERIES_CHIP = true
 let SERIES_LABEL = "162 출근룩 | 자라 맨즈 아우터"
 let THUMB_TAG = "- 두툼한 겨울 아우터 4벌 -"
 let caps: [Cap] = [
     Cap(start: HOOK_END, end: END, text: SERIES_LABEL, style: .series),
 
-    // 1. 버건디 퀼팅 재킷 (0~9.8, 훅 0~2.5)
-    Cap(start: 2.5, end: 9.8, text: "1. 버건디 퀼팅 재킷", style: .title),
-    Cap(start: 2.5, end: 5.1, text: "버건디 컬러 하나로\n분위기 끝", style: .main),
-    Cap(start: 5.1, end: 7.8, text: "안에 퀼팅 안감이\n두툼하게 들어있어요", style: .main),
-    Cap(start: 5.5, end: 7.8, text: "초가을 말고 지금 입기 딱!", style: .box),
-    Cap(start: 7.8, end: 9.8, text: "162cm, 남자 S 입었어요", style: .main),
-    Cap(start: 2.5, end: 9.8, text: "릴렉스핏 퀼팅 재킷 | 149,900원", style: .price),
+    // 1. 버건디 퀼팅 재킷 (0~6.1, 훅 0~2.0)
+    Cap(start: 2.0, end: 6.1, text: "릴렉스핏 퀼팅 재킷 | 149,900원", style: .title),
+    Cap(start: 2.0, end: 2.9, text: "버건디 컬러 하나로\n분위기 끝", style: .main),
+    Cap(start: 2.9, end: 3.8, text: "162cm, 남자 S 입었어요", style: .main),
+    Cap(start: 3.8, end: 6.1, text: "안에 퀼팅 안감이\n두툼하게 들어있어요", style: .main),
+    Cap(start: 4.1, end: 6.1, text: "초가을 말고 지금 입기 딱!", style: .box),
 
-    // 2. 바버맛 퀼팅 재킷 (9.8~17.3)
-    Cap(start: 9.8, end: 17.3, text: "2. 바버맛 퀼팅 재킷", style: .title),
-    Cap(start: 9.8, end: 12.0, text: "바버 느낌 퀼팅 재킷이\n10만원대?!", style: .main),
-    Cap(start: 12.0, end: 14.4, text: "다이아 퀼팅이\n도톰하게 들어가서", style: .main),
-    Cap(start: 12.3, end: 14.4, text: "요즘 날씨에 딱", style: .box),
-    Cap(start: 14.4, end: 15.5, text: "카라랑 소매는 코듀로이", style: .main),
-    Cap(start: 15.5, end: 17.3, text: "디테일까지 바버 맛..", style: .main),
-    Cap(start: 9.8, end: 17.3, text: "콤비 기하학적 퀼팅 재킷 | 109,900원", style: .price),
+    // 2. 바버맛 퀼팅 재킷 (6.1~11.1)
+    Cap(start: 6.1, end: 11.1, text: "콤비 기하학적 퀼팅 재킷 | 109,900원", style: .title),
+    Cap(start: 6.1, end: 7.3, text: "바버 느낌 퀼팅 재킷이\n10만원대?!", style: .main),
+    Cap(start: 7.3, end: 8.3, text: "다이아 퀼팅이\n도톰하게 들어가서", style: .main),
+    Cap(start: 7.5, end: 8.3, text: "요즘 날씨에 딱", style: .box),
+    Cap(start: 8.3, end: 9.6, text: "카라랑 소매는 코듀로이", style: .main),
+    Cap(start: 9.6, end: 11.1, text: "디테일까지 바버 맛..", style: .main),
 
-    // 3. 페이크 레더 재킷 (17.3~23.8)
-    Cap(start: 17.3, end: 23.8, text: "3. 페이크 레더 재킷", style: .title),
-    Cap(start: 17.3, end: 19.8, text: "출근룩에 하나 있으면\n든든한 레더 재킷", style: .main),
-    Cap(start: 19.8, end: 21.8, text: "엉덩이 덮는 기장이라", style: .main),
-    Cap(start: 20.1, end: 21.8, text: "와이드 팬츠랑 찰떡", style: .box),
-    Cap(start: 21.8, end: 23.8, text: "블랙, 브라운 두 가지 컬러", style: .main),
-    Cap(start: 17.3, end: 23.8, text: "릴렉스핏 페이크 레더 | 149,900원", style: .price),
+    // 3. 페이크 레더 재킷 (11.1~15.9)
+    Cap(start: 11.1, end: 15.9, text: "릴렉스핏 페이크 레더 | 149,900원", style: .title),
+    Cap(start: 11.1, end: 12.4, text: "출근룩에 하나 있으면\n든든한 레더 재킷", style: .main),
+    Cap(start: 12.4, end: 14.2, text: "엉덩이 덮는 기장이라", style: .main),
+    Cap(start: 12.6, end: 14.2, text: "와이드 팬츠랑 찰떡", style: .box),
+    Cap(start: 14.2, end: 15.9, text: "블랙, 브라운 두 가지 컬러", style: .main),
 
-    // 4. 체크 안감 야상 (23.8~30.5) — 제품명 미확인, 가격은 택 기준
-    Cap(start: 23.8, end: END, text: "4. 체크 안감 야상", style: .title),
-    Cap(start: 23.8, end: 25.9, text: "허리 스트링으로\n핏 조절 가능", style: .main),
-    Cap(start: 25.9, end: 28.1, text: "열면 체크 안감이 보여서", style: .main),
-    Cap(start: 26.2, end: 28.1, text: "포인트로 예뻐요", style: .box),
-    Cap(start: 28.1, end: END, text: "큰 숄더백이랑 들면\n출근룩 완성", style: .main),
-    Cap(start: 23.8, end: END, text: "체크 안감 야상 | 139,900원", style: .price),
+    // 4. 체크 안감 야상 (15.9~20.7) — 제품명 미확인, 가격은 택 기준
+    Cap(start: 15.9, end: END, text: "체크 안감 야상 | 139,900원", style: .title),
+    Cap(start: 15.9, end: 17.1, text: "허리 스트링으로\n핏 조절 가능", style: .main),
+    Cap(start: 17.1, end: 18.6, text: "열면 체크 안감이 보여서", style: .main),
+    Cap(start: 17.3, end: 18.6, text: "포인트로 예뻐요", style: .box),
+    Cap(start: 18.6, end: END, text: "큰 숄더백이랑 들면\n출근룩 완성", style: .main),
 ]
 
 // MARK: - drawing helpers
@@ -150,10 +156,14 @@ func boxed(_ text: String, font f: NSFont, color: NSColor, box: NSColor, padX: C
 func capImage(_ c: Cap) -> CGImage {
     switch c.style {
     case .title:
+        if TITLE_BOTTOM {
+            return outlined(c.text, font: font("Pretendard-Medium", 34), fill: .white,
+                            stroke: .black, strokePct: 9, glow: 4)
+        }
         return outlined(c.text, font: font("BookkMyungjo-Bd", 72), fill: cream,
                         stroke: NSColor(white: 0.08, alpha: 1), strokePct: 9, glow: 16, kern: -1)
     case .main:
-        return outlined(c.text, font: font("Pretendard-SemiBold", 52), fill: .white,
+        return outlined(c.text, font: font(MAIN_FONT, 52), fill: .white,
                         stroke: .black, strokePct: 11, glow: 10)
     case .box:
         return outlined(c.text, font: font("YoonChildfundkoreaDaeHan", 62), fill: yellow,
@@ -173,9 +183,12 @@ func capImage(_ c: Cap) -> CGImage {
         return outlined(c.text, font: font("Pretendard-Medium", 28), fill: .white,
                         stroke: .black, strokePct: 9, glow: 4)
     case .outro:
-        return outlined(c.text, font: font("BookkMyungjo-Bd", 84), fill: cream,
+        return outlined(c.text, font: font(DISPLAY_FONT, 84), fill: cream,
                         stroke: NSColor(white: 0.08, alpha: 1), strokePct: 9, glow: 18, kern: -1)
     case .series:
+        if SERIES_CHIP {
+            return boxed(c.text, font: font("Pretendard-SemiBold", 34), color: chipInk, box: yellow, padX: 18, padY: 8)
+        }
         return outlined(c.text, font: font("Pretendard-SemiBold", 34), fill: .white,
                         stroke: .black, strokePct: 10, glow: 8)
     }
@@ -186,7 +199,7 @@ func centerY(_ c: Cap) -> CGFloat {
     switch c.style {
     case .series: return 0.125
     case .outro: return 0.50
-    case .title: return 0.235
+    case .title: return TITLE_BOTTOM ? 0.775 : 0.235
     case .main: return c.text.contains("\n") ? 0.625 : 0.64
     case .box, .cute, .lead, .chip, .gloss: return 0.705
     case .price: return 0.775
@@ -196,8 +209,8 @@ func centerY(_ c: Cap) -> CGFloat {
 
 let hookLines: [(String, String, CGFloat, NSColor, CGFloat)] = [
     (HOOK_TAG, "Pretendard-ExtraBold", 60, yellow, -1),
-    (HOOK_LINE1, titleFont, 86, .white, -3),
-    (HOOK_LINE2, titleFont, 88, yellow, -3),
+    (HOOK_LINE1, env["THUMB_FONT"] ?? DISPLAY_FONT, 86, .white, -3),
+    (HOOK_LINE2, env["THUMB_FONT"] ?? DISPLAY_FONT, 88, yellow, -3),
 ]
 // 5-point star sticker; (x, y) are fractions from the top-left
 func star(_ ctx: CGContext, _ x: CGFloat, _ y: CGFloat, _ r: CGFloat, _ fill: NSColor, _ angle: CGFloat) {
@@ -280,15 +293,26 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
             let attrs: [NSAttributedString.Key: Any] = [
                 .font: font(l.1, l.2), .foregroundColor: l.3, .shadow: shadow,
                 .paragraphStyle: para(lineSpacing: 0), .kern: l.4]
-            let full = NSAttributedString(string: l.0, attributes: attrs).size()
+            let chip = i == 0 && HOOK_TAG_CHIP
+            var lineAttrs = attrs
+            if chip { lineAttrs[.foregroundColor] = chipInk; lineAttrs[.shadow] = nil }
+            let full = NSAttributedString(string: l.0, attributes: lineAttrs).size()
             let shown = String(l.0.prefix(max(0, left)))
             left -= l.0.count
             if shown.isEmpty { continue }
-            NSAttributedString(string: shown, attributes: attrs)
-                .draw(at: CGPoint(x: (W - full.width) / 2, y: H - ys[i] * H - full.height / 2))
+            let origin = CGPoint(x: (W - full.width) / 2, y: H - ys[i] * H - full.height / 2)
+            // tag chip: the colored strip appears whole with the first typed character, then the text types in
+            if chip {
+                ctx.saveGState()
+                ctx.setShadow(offset: CGSize(width: 0, height: -3), blur: 12, color: NSColor.black.withAlphaComponent(0.35).cgColor)
+                ctx.setFillColor(yellow.cgColor)
+                ctx.fill(CGRect(x: origin.x - 22, y: origin.y - 6, width: full.width + 44, height: full.height + 12))
+                ctx.restoreGState()
+            }
+            NSAttributedString(string: shown, attributes: lineAttrs).draw(at: origin)
         }
         // thumbnail only: star stickers around the edges (kockc.o style) + small cute tag
-        if tag { drawStickers(ctx) }
+        if tag && STICKERS { drawStickers(ctx) }
         if tag {
             let tag = NSAttributedString(string: THUMB_TAG, attributes: [
                 .font: font("YoonChildfundkoreaDaeHan", 54), .foregroundColor: NSColor.white, .shadow: shadow])
@@ -534,19 +558,19 @@ typeGroup.isRemovedOnCompletion = false
 typeLayer.add(typeGroup, forKey: "type")
 overlay.addSublayer(typeLayer)
 // star stickers during the intro, same as the thumbnail
-addTimed(bitmap(Int(W), Int(H)) { ctx in drawStickers(ctx) }, frame: full, start: 0, end: hookEnd)
+if STICKERS { addTimed(bitmap(Int(W), Int(H)) { ctx in drawStickers(ctx) }, frame: full, start: 0, end: hookEnd) }
 // outro: dim + stars + closing line over the group shot
 let outroEnd = outroStart + OUTRO_LEN
 addTimed(bitmap(Int(W), Int(H)) { ctx in
     ctx.setFillColor(NSColor.black.withAlphaComponent(0.38).cgColor); ctx.fill(full)
-    drawStickers(ctx)
+    if STICKERS { drawStickers(ctx) }
 }, frame: full, start: outroStart, end: outroEnd, fadeIn: 0.15, fadeOut: 0.01)
 let outroCap = Cap(start: outroStart, end: outroEnd, text: OUTRO_TEXT, style: .outro)
 let outroFrame = layerFrame(outroCap, capImage(outroCap))
 addTimed(capImage(outroCap), frame: outroFrame, start: outroStart + 0.1, end: outroEnd,
          fadeIn: 0.2, fadeOut: 0.01)
 if !OUTRO_LEAD.isEmpty {
-    let leadImg = outlined(OUTRO_LEAD, font: font("BookkMyungjo-Bd", 54), fill: cream,
+    let leadImg = outlined(OUTRO_LEAD, font: font(DISPLAY_FONT, 54), fill: cream,
                            stroke: NSColor(white: 0.08, alpha: 1), strokePct: 9, glow: 14, kern: -1)
     let lw = CGFloat(leadImg.width), lh = CGFloat(leadImg.height)
     addTimed(leadImg, frame: CGRect(x: (W - lw) / 2, y: outroFrame.maxY - 24 - 24 + 14, width: lw, height: lh),
