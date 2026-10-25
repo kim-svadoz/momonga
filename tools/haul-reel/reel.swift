@@ -33,10 +33,13 @@ let cream = NSColor(red: 1.0, green: 0.96, blue: 0.86, alpha: 1)
 
 // MARK: - caption timeline
 
-enum Style { case title, main, box, cute, gloss, price, note, series }
+enum Style { case title, main, box, cute, gloss, price, note, series, outro }
 struct Cap { let start: Double; let end: Double; let text: String; let style: Style }
 
 let END = 42.83
+// 엔딩: 원본의 쇼핑 떼샷 구간을 한 번 더 붙이고 마무리 문구를 띄운다
+let OUTRO_FROM = 1.4, OUTRO_LEN = 2.0
+let OUTRO_TEXT = "곧 2탄도 가져올게요!"
 let caps: [Cap] = [
     Cap(start: 3.4, end: END, text: "돈키호테 쇼핑템 1탄", style: .series),
 
@@ -162,6 +165,9 @@ func capImage(_ c: Cap) -> CGImage {
     case .note:
         return outlined(c.text, font: font("Pretendard-Medium", 28), fill: .white,
                         stroke: .black, strokePct: 9, glow: 4)
+    case .outro:
+        return outlined(c.text, font: font("BookkMyungjo-Bd", 84), fill: cream,
+                        stroke: NSColor(white: 0.08, alpha: 1), strokePct: 9, glow: 18, kern: -1)
     case .series:
         return outlined(c.text, font: font("Pretendard-SemiBold", 34), fill: .white,
                         stroke: .black, strokePct: 10, glow: 8)
@@ -172,6 +178,7 @@ func capImage(_ c: Cap) -> CGImage {
 func centerY(_ c: Cap) -> CGFloat {
     switch c.style {
     case .series: return 0.125
+    case .outro: return 0.50
     case .title: return 0.235
     case .main: return c.text.contains("\n") ? 0.625 : 0.64
     case .box, .cute, .gloss: return 0.705
@@ -289,7 +296,15 @@ try! vTrack.insertTimeRange(range, of: vSrc, at: .zero)
 if let aSrc = asset.tracks(withMediaType: .audio).first {
     let aTrack = comp.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)!
     try! aTrack.insertTimeRange(CMTimeRange(start: .zero, duration: aSrc.timeRange.duration), of: aSrc, at: .zero)
+    try! aTrack.insertTimeRange(CMTimeRange(start: CMTime(seconds: OUTRO_FROM, preferredTimescale: 600),
+                                            duration: CMTime(seconds: OUTRO_LEN, preferredTimescale: 600)),
+                                of: aSrc, at: range.duration)
 }
+let outroStart = CMTimeGetSeconds(range.duration)
+try! vTrack.insertTimeRange(CMTimeRange(start: CMTime(seconds: OUTRO_FROM, preferredTimescale: 600),
+                                        duration: CMTime(seconds: OUTRO_LEN, preferredTimescale: 600)),
+                            of: vSrc, at: range.duration)
+let total = CMTimeRange(start: .zero, duration: comp.duration)
 
 let gen = AVAssetImageGenerator(asset: asset)
 gen.appliesPreferredTrackTransform = true
@@ -374,6 +389,15 @@ typeLayer.add(typeGroup, forKey: "type")
 overlay.addSublayer(typeLayer)
 // star stickers during the intro, same as the thumbnail
 addTimed(bitmap(Int(W), Int(H)) { ctx in drawStickers(ctx) }, frame: full, start: 0, end: hookEnd)
+// outro: dim + stars + closing line over the group shot
+let outroEnd = outroStart + OUTRO_LEN
+addTimed(bitmap(Int(W), Int(H)) { ctx in
+    ctx.setFillColor(NSColor.black.withAlphaComponent(0.38).cgColor); ctx.fill(full)
+    drawStickers(ctx)
+}, frame: full, start: outroStart, end: outroEnd, fadeIn: 0.15, fadeOut: 0.01)
+let outroCap = Cap(start: outroStart, end: outroEnd, text: OUTRO_TEXT, style: .outro)
+addTimed(capImage(outroCap), frame: layerFrame(outroCap, capImage(outroCap)), start: outroStart + 0.1, end: outroEnd,
+         fadeIn: 0.2, fadeOut: 0.01)
 
 // CALayer origin is bottom-left here
 func layerFrame(_ c: Cap, _ img: CGImage) -> CGRect {
@@ -396,7 +420,7 @@ let vc = AVMutableVideoComposition()
 vc.renderSize = CGSize(width: W, height: H)
 vc.frameDuration = CMTime(value: 1, timescale: 30)
 let inst = AVMutableVideoCompositionInstruction()
-inst.timeRange = range
+inst.timeRange = total
 inst.layerInstructions = [AVMutableVideoCompositionLayerInstruction(assetTrack: vTrack)]
 vc.instructions = [inst]
 vc.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: parent)
