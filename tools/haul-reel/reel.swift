@@ -72,8 +72,9 @@ let HOOK_LINE1_Y: CGFloat = 0.41
 // 썸네일 로고 글자 ("" = 없음). 머리 위에 크게, Didot 글꼴. 사람을 따로 오려 로고 위에 얹어 머리가 로고를 살짝 가린다
 let THUMB_LOGO = "ZARA"
 let THUMB_LOGO_COLOR = NSColor.black
-// 영상 내내 맨 위에 로고 고정 (THUMB_LOGO 글자). 높이·폭은 화면 비율
-let VIDEO_LOGO = true, VIDEO_LOGO_Y: CGFloat = 0.065, VIDEO_LOGO_WIDTH: CGFloat = 0.6
+// 오프닝(0~HOOK_END) 동안 로고를 머리 바로 뒤에 고정 (썸네일처럼 프레임마다 사람을 오려 머리가 로고를 가린다)
+// 높이는 오프닝 컷들의 머리 꼭대기(0.12~0.18)에 맞춤. 1번 제품이 시작되면 사라진다
+let VIDEO_LOGO = true, VIDEO_LOGO_Y: CGFloat = 0.13, VIDEO_LOGO_WIDTH: CGFloat = 0.86
 // 썸네일 큰 제목: "" = 오프닝과 같은 두 줄. 값이 있으면 썸네일만 이 문구로 ("/" = 줄바꿈, 둘째 줄이 더 크다)
 let THUMB_TITLE = "자라 맨즈 아우터/이건 사지 마세요.."
 // 썸네일 제목 첫 줄 높이 (화면 위에서부터 비율, 가운데 기준). 0 = 오프닝 문구와 같은 높이
@@ -87,7 +88,7 @@ let HOOK_LINE1 = "자라 맨즈 아우터", HOOK_LINE2 = "이건 사지 마세�
 let HOOK_LINE1_SIZE: CGFloat = 56, HOOK_LINE2_SIZE: CGFloat = 100
 let HOOK_LINE2_COLOR = NSColor.white
 // 오프닝 큰 제목 밑에 작게 붙는 줄 ("" = 없음). 얇고 귀여운 손글씨
-let HOOK_LINE3 = "(저만 입고 싶으니까..)", HOOK_LINE3_FONT = "YoonChildfundkoreaManSeh"
+let HOOK_LINE3 = "저만 입고싶으니까..", HOOK_LINE3_FONT = "YoonChildfundkoreaManSeh"
 // 별·점 스티커 (썸네일·오프닝·엔딩). 하울 릴스에만 쓴다
 let STICKERS = false
 // 글꼴: 훅 큰 제목·엔딩 문구 / 메인 자막 (하울 릴스: BookkMyungjo-Bd / Pretendard-SemiBold)
@@ -230,7 +231,7 @@ func capImage(_ c: Cap) -> CGImage {
 // center y measured from top, as a fraction of height
 func centerY(_ c: Cap) -> CGFloat {
     switch c.style {
-    case .series: return VIDEO_LOGO ? 0.14 : 0.125
+    case .series: return 0.125
     case .outro: return 0.50
     case .title: return TITLE_BOTTOM ? 0.775 : 0.235
     case .main: return c.text.contains("\n") ? 0.625 : 0.64
@@ -778,13 +779,46 @@ for c in caps {
     placed.append((c, f))
     addTimed(img, frame: f, start: c.start, end: c.end)
 }
-// brand logo pinned at the top for the whole video (no cut-out: it sits above the head)
+// opening logo behind the head: one layer whose contents switch every frame (logo with the person cut out)
 if VIDEO_LOGO {
-    let logoH = 0.12 * H
-    addTimed(bitmap(Int(W), Int(logoH)) { ctx in
-        ctx.translateBy(x: 0, y: logoH - H)
-        drawLogo(ctx, y: VIDEO_LOGO_Y, widthFrac: VIDEO_LOGO_WIDTH)
-    }, frame: CGRect(x: 0, y: H - logoH, width: W, height: logoH), start: 0, end: CMTimeGetSeconds(total.duration), fadeIn: 0.01, fadeOut: 0.01)
+    let logoGen = AVAssetImageGenerator(asset: asset)
+    logoGen.appliesPreferredTrackTransform = true
+    logoGen.requestedTimeToleranceBefore = .zero; logoGen.requestedTimeToleranceAfter = .zero
+    logoGen.maximumSize = CGSize(width: W, height: H)
+    let logoFull = bitmap(Int(W), Int(H)) { drawLogo($0, y: VIDEO_LOGO_Y, widthFrac: VIDEO_LOGO_WIDTH) }
+    // only the band around the logo is kept per frame
+    let lTop = (VIDEO_LOGO_Y - 0.09) * H, lH = 0.18 * H
+    let fps = 30.0
+    var logoFrames: [CGImage] = [], logoTimes: [NSNumber] = []
+    var t = 0.0
+    while t < HOOK_END {
+        let frame = try! logoGen.copyCGImage(at: CMTime(seconds: t, preferredTimescale: 600), actualTime: nil)
+        let holed = bitmap(Int(W), Int(H)) { ctx in
+            ctx.draw(logoFull, in: CGRect(x: 0, y: 0, width: W, height: H))
+            // punch the person out of the logo
+            if let m = personMask(frame) {
+                ctx.saveGState(); ctx.setBlendMode(.destinationOut)
+                ctx.clip(to: CGRect(x: 0, y: 0, width: W, height: H), mask: m)
+                ctx.setFillColor(NSColor.black.cgColor); ctx.fill(CGRect(x: 0, y: 0, width: W, height: H))
+                ctx.restoreGState()
+            }
+        }
+        logoFrames.append(holed.cropping(to: CGRect(x: 0, y: lTop, width: W, height: lH))!)
+        logoTimes.append(NSNumber(value: t / HOOK_END))
+        t += 1 / fps
+    }
+    let logoLayer = CALayer()
+    logoLayer.frame = CGRect(x: 0, y: H - lTop - lH, width: W, height: lH)
+    logoLayer.opacity = 0
+    let swap = CAKeyframeAnimation(keyPath: "contents")
+    swap.values = logoFrames; swap.keyTimes = logoTimes; swap.calculationMode = .discrete; swap.duration = HOOK_END
+    let fade = CAKeyframeAnimation(keyPath: "opacity")
+    fade.values = [1, 1, 0]; fade.keyTimes = [0, NSNumber(value: (HOOK_END - 0.1) / HOOK_END), 1]; fade.duration = HOOK_END
+    let grp = CAAnimationGroup()
+    grp.animations = [swap, fade]; grp.duration = HOOK_END
+    grp.beginTime = AVCoreAnimationBeginTimeAtZero; grp.isRemovedOnCompletion = false
+    logoLayer.add(grp, forKey: "logo")
+    overlay.addSublayer(logoLayer)
 }
 
 let vc = AVMutableVideoComposition()

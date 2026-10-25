@@ -58,7 +58,7 @@ THUMB_ONLY=1 THUMB_FONT=<PostScript 이름> THUMB_OUT=<경로.jpg> swift tools/h
 | `OUTRO_SIZE` / `OUTRO_LEAD_SIZE` 엔딩 글자 | 84 / 54 | 70 / 40 |
 | `THUMB_LOGO` 썸네일 브랜드 글자 (Didot, 머리 위, 사람을 오려 얹음) | "" | "ZARA" (검정) |
 | `THUMB_SHOW_TAG` 썸네일에 훅 태그 | — | false |
-| `VIDEO_LOGO` 영상 내내 맨 위 로고 | — | true (높이 0.065, 폭 0.6) |
+| `VIDEO_LOGO` 오프닝 동안 머리 뒤 로고 (프레임마다 사람 오려냄) | — | true (높이 0.13, 폭 0.86) |
 | `OUTRO_INLINE` 엔딩을 마지막 컷에 이어서 | false (OUTRO_FROM 구간 반복) | true |
 | `HOOK_TAG` 훅 태그 | "[저장 필수]" | "" (없음) |
 | `THUMB_TITLE` 썸네일만 큰 제목 (`/` = 줄바꿈, 둘째 줄이 더 큼) | "" | "자라 맨즈 아우터/이건 사지 마세요.." |
