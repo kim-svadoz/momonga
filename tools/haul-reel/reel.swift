@@ -404,7 +404,8 @@ gen.appliesPreferredTrackTransform = true
 gen.requestedTimeToleranceBefore = .zero
 gen.requestedTimeToleranceAfter = .zero
 // 2.4s: 치이카와·모몽가·하치와레 얼굴이 모두 보이는 전체샷
-let thumbBg = try? gen.copyCGImage(at: CMTime(seconds: 2.4, preferredTimescale: 600), actualTime: nil)
+let thumbT = Double(env["THUMB_T"] ?? "") ?? 2.4  // 덜 흔들린 프레임은 sharp 순위로 고른다
+let thumbBg = try? gen.copyCGImage(at: CMTime(seconds: thumbT, preferredTimescale: 600), actualTime: nil)
 writeJPEG(hookImage(background: thumbBg, centered: true, tag: true), env["THUMB_OUT"] ?? "\(outDir)/썸네일_\(titleFont).jpg")
 if env["THUMB_ONLY"] != nil { exit(0) }
 
