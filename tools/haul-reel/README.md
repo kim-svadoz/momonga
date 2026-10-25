@@ -60,8 +60,8 @@ THUMB_ONLY=1 THUMB_FONT=<PostScript 이름> THUMB_OUT=<경로.jpg> swift tools/h
 | `THUMB_SHOW_TAG` 썸네일에 훅 태그 | — | false |
 | `THUMB_TITLE` 썸네일만 큰 제목 (`/` = 줄바꿈, 둘째 줄이 더 큼) | "" | "자라 맨즈 아우터/이건 사지 마세요.." |
 | `THUMB_FONT_NAME` 썸네일 큰 제목 글꼴 | BookkMyungjo-Bd | BookkMyungjo-Bd |
-| `THUMB_TITLE_Y` 썸네일 제목 첫 줄 높이 | 0 (오프닝과 같음) | 0.35 |
-| `THUMB_TAG_CHIP` / `THUMB_TAG_Y` 꼬리표를 아래쪽 흰 띠로 | false | true / 0.80 |
+| `THUMB_TITLE_Y` 썸네일 제목 첫 줄 높이 | 0 (오프닝과 같음) | 0.43 (가슴) |
+| `THUMB_TAG_CHIP` / `THUMB_TAG_Y` / `THUMB_TAG_BG` 꼬리표 네모 띠 | false | true / 0.565 / 민트 |
 | `TITLE_BOTTOM` 제품명 위치 | false (위쪽 큰 명조) | true (아래쪽 작게, 가격과 한 줄) |
 | `DISPLAY_FONT` / `MAIN_FONT` | BookkMyungjo-Bd / Pretendard-SemiBold | Pretendard-SemiBold / Pretendard-Medium |
 

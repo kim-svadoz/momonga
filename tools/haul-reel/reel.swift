@@ -73,7 +73,7 @@ let THUMB_LOGO_COLOR = NSColor.black
 // 썸네일 큰 제목: "" = 오프닝과 같은 두 줄. 값이 있으면 썸네일만 이 문구로 ("/" = 줄바꿈, 둘째 줄이 더 크다)
 let THUMB_TITLE = "자라 맨즈 아우터/이건 사지 마세요.."
 // 썸네일 제목 첫 줄 높이 (화면 위에서부터 비율, 가운데 기준). 0 = 오프닝 문구와 같은 높이
-let THUMB_TITLE_Y: CGFloat = 0.35
+let THUMB_TITLE_Y: CGFloat = 0.43
 // 썸네일에 훅 태그(고정 타겟 키워드)를 넣을지
 let THUMB_SHOW_TAG = false
 // 썸네일 큰 제목 글꼴 (환경변수 THUMB_FONT가 있으면 그게 우선)
@@ -88,9 +88,10 @@ let TITLE_BOTTOM = true
 // true: 맨 위 시리즈 라벨을 색 배경 띠로
 let SERIES_CHIP = true
 let SERIES_LABEL = "162 출근룩 | 자라 맨즈 아우터"
-let THUMB_TAG = "두툼한 초겨울 아우터 모음집"
-// true: 썸네일 꼬리표를 화면 아래쪽 흰 네모 배경 띠로 (THUMB_TAG_Y 높이), false: 제목 밑 손글씨
-let THUMB_TAG_CHIP = true, THUMB_TAG_Y: CGFloat = 0.80
+let THUMB_TAG = "두툼한 초겨울 아우터 모음zip."
+// true: 썸네일 꼬리표를 네모 배경 띠로 (THUMB_TAG_Y 높이, THUMB_TAG_BG 색), false: 제목 밑 손글씨
+let THUMB_TAG_CHIP = true, THUMB_TAG_Y: CGFloat = 0.565
+let THUMB_TAG_BG = NSColor(red: 0.62, green: 0.90, blue: 0.84, alpha: 1)
 let caps: [Cap] = [
     Cap(start: HOOK_END, end: END, text: SERIES_LABEL, style: .series),
 
@@ -431,7 +432,8 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
             let t = NSAttributedString(string: THUMB_TAG, attributes: [.font: font("Pretendard-Medium", 46), .foregroundColor: PILL_INK])
             let sz = t.size()
             let origin = CGPoint(x: (W - sz.width) / 2, y: H - THUMB_TAG_Y * H - sz.height / 2)
-            drawPill(ctx, CGRect(x: origin.x - 28, y: origin.y - 12, width: sz.width + 56, height: sz.height + 24))
+            ctx.setFillColor(THUMB_TAG_BG.cgColor)
+            ctx.fill(CGRect(x: origin.x - 28, y: origin.y - 12, width: sz.width + 56, height: sz.height + 24))
             t.draw(at: origin)
         } else if tag {
             let tag = NSAttributedString(string: THUMB_TAG, attributes: [
