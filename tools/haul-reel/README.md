@@ -22,6 +22,7 @@ swift tools/haul-reel/frames.swift <원본.MOV> <작업폴더>   # 변화량이 
 # 2) reel.swift의 caps 배열, hookLines, 썸네일 꼬리표, 썸네일 시점(thumbBg)을 이번 영상에 맞게 고친다
 # 3) 렌더
 SFX=capcut swift tools/haul-reel/reel.swift <원본.MOV> output/YYMMDD/reels_<주제>/
+# 썸네일 배경을 따로 찍은 사진(HEIC/JPG)으로: THUMB_IMAGE=<사진 경로> (9:16에 맞게 가운데를 자른다)
 # 썸네일만 다른 글꼴로 뽑기
 THUMB_ONLY=1 THUMB_FONT=<PostScript 이름> THUMB_OUT=<경로.jpg> swift tools/haul-reel/reel.swift <원본.MOV> /tmp
 ```

@@ -547,7 +547,19 @@ gen.requestedTimeToleranceBefore = .zero
 gen.requestedTimeToleranceAfter = .zero
 // 2.4s: 치이카와·모몽가·하치와레 얼굴이 모두 보이는 전체샷
 let thumbT = Double(env["THUMB_T"] ?? "") ?? 2.4  // 덜 흔들린 프레임은 sharp 순위로 고른다
-let thumbBg = try? gen.copyCGImage(at: CMTime(seconds: thumbT, preferredTimescale: 600), actualTime: nil)
+// THUMB_IMAGE=<사진 경로>: 영상 장면 대신 따로 찍은 사진(HEIC/JPG)을 배경으로. 세로 9:16에 맞게 가운데를 잘라 쓴다
+func photoBackground(_ path: String) -> CGImage? {
+    guard let src = CGImageSourceCreateWithURL(URL(fileURLWithPath: path) as CFURL, nil),
+          let img = CGImageSourceCreateThumbnailAtIndex(src, 0, [kCGImageSourceCreateThumbnailFromImageAlways: true,
+              kCGImageSourceCreateThumbnailWithTransform: true, kCGImageSourceThumbnailMaxPixelSize: 4000] as CFDictionary)
+    else { fatalError("photo unreadable: \(path)") }
+    let w = CGFloat(img.width), h = CGFloat(img.height)
+    let crop = w / h > W / H ? CGRect(x: (w - h * W / H) / 2, y: 0, width: h * W / H, height: h)
+                             : CGRect(x: 0, y: (h - w * H / W) / 2, width: w, height: w * H / W)
+    return img.cropping(to: crop.integral)
+}
+let thumbBg = env["THUMB_IMAGE"].map(photoBackground)
+    ?? (try? gen.copyCGImage(at: CMTime(seconds: thumbT, preferredTimescale: 600), actualTime: nil))
 writeJPEG(hookImage(background: thumbBg, centered: true, tag: true), env["THUMB_OUT"] ?? "\(outDir)/썸네일_\(titleFont).jpg")
 if env["THUMB_ONLY"] != nil { exit(0) }
 
