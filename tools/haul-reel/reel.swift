@@ -69,7 +69,7 @@ let HOOK_LINE1_Y: CGFloat = 0.41
 // 썸네일 로고 글자 ("" = 없음). 화면 위쪽에 크게, Didot 글꼴로
 let THUMB_LOGO = ""
 // 썸네일 큰 제목: "" = 오프닝과 같은 두 줄, 값이 있으면 썸네일만 이 한 줄로 (흰 글자)
-let THUMB_TITLE = "자라 맨즈 아우터 추천 4"
+let THUMB_TITLE = "자라 맨즈 아우터 이건 사지 마세요"
 // 썸네일 큰 제목 글꼴 (환경변수 THUMB_FONT가 있으면 그게 우선)
 let THUMB_FONT_NAME = "ChosunGu"
 let HOOK_LINE1 = "자라 맨즈에서 찾은", HOOK_LINE2 = "여자 출근룩 아우터"
