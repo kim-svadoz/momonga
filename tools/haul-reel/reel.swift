@@ -46,7 +46,9 @@ let END = 35.1
 let HOOK_END = 2.0
 // 엔딩: 원본의 쇼핑 떼샷 구간을 한 번 더 붙이고 마무리 문구를 띄운다
 let OUTRO_FROM = 0.0, OUTRO_LEN = 2.0
-let OUTRO_TEXT = "11월에 일본 또 가는데\n파산 예정.. 💸"
+let OUTRO_TEXT = "파산 각.. 💸"
+// 엔딩 큰 글씨 위에 작게 붙는 줄 ("" = 없음)
+let OUTRO_LEAD = "11월에 일본 또 가는데"
 let HOOK_LINE1 = "n번째 재구매중인", HOOK_LINE2 = "돈키호테 재구매템 2탄"
 let SERIES_LABEL = "돈키호테 쇼핑템 2탄"
 let THUMB_TAG = "- 진통제/간식/생활용품 -"
@@ -542,8 +544,16 @@ addTimed(bitmap(Int(W), Int(H)) { ctx in
     drawStickers(ctx)
 }, frame: full, start: outroStart, end: outroEnd, fadeIn: 0.15, fadeOut: 0.01)
 let outroCap = Cap(start: outroStart, end: outroEnd, text: OUTRO_TEXT, style: .outro)
-addTimed(capImage(outroCap), frame: layerFrame(outroCap, capImage(outroCap)), start: outroStart + 0.1, end: outroEnd,
+let outroFrame = layerFrame(outroCap, capImage(outroCap))
+addTimed(capImage(outroCap), frame: outroFrame, start: outroStart + 0.1, end: outroEnd,
          fadeIn: 0.2, fadeOut: 0.01)
+if !OUTRO_LEAD.isEmpty {
+    let leadImg = outlined(OUTRO_LEAD, font: font("BookkMyungjo-Bd", 54), fill: cream,
+                           stroke: NSColor(white: 0.08, alpha: 1), strokePct: 9, glow: 14, kern: -1)
+    let lw = CGFloat(leadImg.width), lh = CGFloat(leadImg.height)
+    addTimed(leadImg, frame: CGRect(x: (W - lw) / 2, y: outroFrame.maxY - 24 - 24 + 14, width: lw, height: lh),
+             start: outroStart + 0.1, end: outroEnd, fadeIn: 0.2, fadeOut: 0.01)
+}
 
 // CALayer origin is bottom-left here
 func layerFrame(_ c: Cap, _ img: CGImage) -> CGRect {
