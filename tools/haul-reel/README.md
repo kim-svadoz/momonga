@@ -51,6 +51,11 @@ THUMB_ONLY=1 THUMB_FONT=<PostScript 이름> THUMB_OUT=<경로.jpg> swift tools/h
 | `SERIES_CHIP` 맨 위 라벨 알약 배경 | false | true |
 | `PILL_BG` / `PILL_INK` 알약 색 | — | 흰 0.92 / 먹색 |
 | `HOOK_PER_CHAR` 타자기 한 글자 간격 | 0.05 | 0.04 |
+| `PILL_RADIUS` 태그·라벨 모서리 | — | 0 (네모) |
+| `HOOK_FONT` 오프닝 큰 제목 | BookkMyungjo-Bd | BookkMyungjo-Bd |
+| `HOOK_LINE1_Y` 오프닝 첫 줄 높이 | 0.495 | 0.41 (태그가 가슴 높이) |
+| `OUTRO_SIZE` / `OUTRO_LEAD_SIZE` 엔딩 글자 | 84 / 54 | 70 / 40 |
+| `THUMB_LOGO` 썸네일 브랜드 글자 (Didot) | "" | "ZARA" |
 | `TITLE_BOTTOM` 제품명 위치 | false (위쪽 큰 명조) | true (아래쪽 작게, 가격과 한 줄) |
 | `DISPLAY_FONT` / `MAIN_FONT` | BookkMyungjo-Bd / Pretendard-SemiBold | Pretendard-SemiBold / Pretendard-Medium |
 

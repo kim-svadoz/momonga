@@ -49,15 +49,25 @@ let HOOK_END = 3.2
 let HOOK_PER_CHAR = 0.04
 // 엔딩: 버건디 전신 컷(3.2~4.6)을 한 번 더 붙이고 댓글 유도 문구
 let OUTRO_FROM = 3.2, OUTRO_LEN = 1.5
-let OUTRO_TEXT = "댓글에 '자라' 💌"
+let OUTRO_TEXT = "댓글에 '자라' 남겨주세요"
 // 엔딩 큰 글씨 위에 작게 붙는 줄 ("" = 없음)
-let OUTRO_LEAD = "제품명·가격·사이즈 궁금하면"
+let OUTRO_LEAD = "제품명, 가격, 착용 사이즈 등 궁금하신 분들은"
+// 엔딩 글자 크기: 큰 줄 / 위 작은 줄 (하울 릴스: 84 / 54)
+let OUTRO_SIZE: CGFloat = 70, OUTRO_LEAD_SIZE: CGFloat = 40
 // 훅 맨 윗줄 (작은 태그). 하울 릴스는 "[저장 필수]", 패션 릴스는 고정 타겟 키워드
 let HOOK_TAG = "162cm 대기업 직장인"
 // true: 태그를 작은 알약 모양 배경에 넣어 큰 제목 바로 위에 붙인다, false: 큰 노랑 글자 (하울 릴스)
 let HOOK_TAG_CHIP = true
 // 알약 배경 (훅 태그·맨 위 시리즈 라벨): 흰 배경 + 먹색 글자. 오프닝에선 태그가 왼쪽부터 닦이듯 그라데이션으로 들어온다
 let PILL_BG = NSColor(white: 1, alpha: 0.92), PILL_INK = NSColor(white: 0.1, alpha: 1)
+// 알약 모서리 둥글기 (0 = 네모, 높이의 절반 = 완전 둥근 알약)
+let PILL_RADIUS: CGFloat = 0
+// 오프닝 큰 제목 글꼴 (썸네일은 THUMB_FONT로 따로 고를 수 있다)
+let HOOK_FONT = "BookkMyungjo-Bd"
+// 오프닝 큰 제목 첫 줄 높이 (화면 위에서부터 비율). 0.41이면 태그가 전신 컷의 가슴 높이에 온다 (하울 릴스: 0.495)
+let HOOK_LINE1_Y: CGFloat = 0.41
+// 썸네일 로고 글자 ("" = 없음). 화면 위쪽에 크게, Didot 글꼴로
+let THUMB_LOGO = "ZARA"
 let HOOK_LINE1 = "자라 맨즈에서 찾은", HOOK_LINE2 = "여자 출근룩 아우터"
 // 별·점 스티커 (썸네일·오프닝·엔딩). 하울 릴스에만 쓴다
 let STICKERS = false
@@ -143,7 +153,7 @@ func outlined(_ text: String, font f: NSFont, fill: NSColor, stroke: NSColor, st
     }
 }
 
-func boxed(_ text: String, font f: NSFont, color: NSColor, box: NSColor, padX: CGFloat, padY: CGFloat, round: Bool = false) -> CGImage {
+func boxed(_ text: String, font f: NSFont, color: NSColor, box: NSColor, padX: CGFloat, padY: CGFloat, radius: CGFloat = 0) -> CGImage {
     let attr = NSAttributedString(string: text, attributes: [
         .font: f, .foregroundColor: color, .paragraphStyle: para(), .kern: -0.5])
     let size = attr.boundingRect(with: CGSize(width: W - 120, height: 2000),
@@ -152,8 +162,8 @@ func boxed(_ text: String, font f: NSFont, color: NSColor, box: NSColor, padX: C
     return bitmap(Int(bw), Int(bh)) { ctx in
         ctx.setFillColor(box.cgColor)
         let r = CGRect(x: 0, y: 0, width: bw, height: bh)
-        if round { ctx.addPath(CGPath(roundedRect: r, cornerWidth: bh / 2, cornerHeight: bh / 2, transform: nil)); ctx.fillPath() }
-        else { ctx.fill(r) }
+        let rad = min(radius, bh / 2)
+        ctx.addPath(CGPath(roundedRect: r, cornerWidth: rad, cornerHeight: rad, transform: nil)); ctx.fillPath()
         attr.draw(with: CGRect(x: padX, y: padY, width: size.width, height: size.height),
                   options: [.usesLineFragmentOrigin, .usesFontLeading])
     }
@@ -189,11 +199,11 @@ func capImage(_ c: Cap) -> CGImage {
         return outlined(c.text, font: font("Pretendard-Medium", 28), fill: .white,
                         stroke: .black, strokePct: 9, glow: 4)
     case .outro:
-        return outlined(c.text, font: font(DISPLAY_FONT, 84), fill: cream,
+        return outlined(c.text, font: font(DISPLAY_FONT, OUTRO_SIZE), fill: cream,
                         stroke: NSColor(white: 0.08, alpha: 1), strokePct: 9, glow: 18, kern: -1)
     case .series:
         if SERIES_CHIP {
-            return boxed(c.text, font: font("Pretendard-Medium", 30), color: PILL_INK, box: PILL_BG, padX: 22, padY: 8, round: true)
+            return boxed(c.text, font: font("Pretendard-Medium", 30), color: PILL_INK, box: PILL_BG, padX: 22, padY: 8, radius: PILL_RADIUS)
         }
         return outlined(c.text, font: font("Pretendard-SemiBold", 34), fill: .white,
                         stroke: .black, strokePct: 10, glow: 8)
@@ -215,8 +225,8 @@ func centerY(_ c: Cap) -> CGFloat {
 
 let hookLines: [(String, String, CGFloat, NSColor, CGFloat)] = [
     HOOK_TAG_CHIP ? (HOOK_TAG, "Pretendard-Medium", 34, PILL_INK, 0) : (HOOK_TAG, "Pretendard-ExtraBold", 60, yellow, -1),
-    (HOOK_LINE1, env["THUMB_FONT"] ?? DISPLAY_FONT, 86, .white, -3),
-    (HOOK_LINE2, env["THUMB_FONT"] ?? DISPLAY_FONT, 88, yellow, -3),
+    (HOOK_LINE1, env["THUMB_FONT"] ?? HOOK_FONT, 86, .white, -3),
+    (HOOK_LINE2, env["THUMB_FONT"] ?? HOOK_FONT, 88, yellow, -3),
 ]
 // 5-point star sticker; (x, y) are fractions from the top-left
 func star(_ ctx: CGContext, _ x: CGFloat, _ y: CGFloat, _ r: CGFloat, _ fill: NSColor, _ angle: CGFloat) {
@@ -278,7 +288,7 @@ let typeStart = HOOK_TAG_CHIP ? TAG_WIPE_START + TAG_WIPE_LEN : 0.15, perChar = 
 // visible: how many characters are typed so far (typewriter); lines stay left-anchored so text does not shift.
 // hook line y positions (center, fraction from top); the small pill tag sits right on top of the first big line
 func hookYs(centered: Bool) -> [CGFloat] {
-    var ys: [CGFloat] = centered ? [0.435, 0.495, 0.555] : [0.165, 0.225, 0.285]
+    var ys: [CGFloat] = centered ? [HOOK_LINE1_Y - 0.06, HOOK_LINE1_Y, HOOK_LINE1_Y + 0.06] : [0.165, 0.225, 0.285]
     if HOOK_TAG_CHIP {
         let tagH = NSAttributedString(string: hookLines[0].0, attributes: [.font: font(hookLines[0].1, hookLines[0].2)]).size().height
         let l1H = NSAttributedString(string: hookLines[1].0, attributes: [.font: font(hookLines[1].1, hookLines[1].2)]).size().height
@@ -296,7 +306,8 @@ func tagPill(centered: Bool) -> (text: NSAttributedString, origin: CGPoint, rect
     return (text, origin, CGRect(x: origin.x - 22, y: origin.y - 8, width: full.width + 44, height: full.height + 16))
 }
 func drawPill(_ ctx: CGContext, _ r: CGRect) {
-    ctx.addPath(CGPath(roundedRect: r, cornerWidth: r.height / 2, cornerHeight: r.height / 2, transform: nil))
+    let rad = min(PILL_RADIUS, r.height / 2)
+    ctx.addPath(CGPath(roundedRect: r, cornerWidth: rad, cornerHeight: rad, transform: nil))
     ctx.setFillColor(PILL_BG.cgColor); ctx.fillPath()
 }
 
@@ -344,7 +355,14 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
             let tag = NSAttributedString(string: THUMB_TAG, attributes: [
                 .font: font("YoonChildfundkoreaDaeHan", 54), .foregroundColor: NSColor.white, .shadow: shadow])
             let sz = tag.size()
-            tag.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - (centered ? 0.615 : 0.345) * H - sz.height / 2))
+            tag.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - (ys[2] + 0.06) * H - sz.height / 2))
+        }
+        // thumbnail only: brand wordmark set in Didot (not the official logo file), centered above the hook text
+        if tag && !THUMB_LOGO.isEmpty {
+            let logo = NSAttributedString(string: THUMB_LOGO, attributes: [
+                .font: font("Didot", 190), .foregroundColor: NSColor.white, .kern: 6, .shadow: shadow])
+            let sz = logo.size()
+            logo.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - (ys[0] - 0.11) * H - sz.height / 2))
         }
     }
 }
@@ -551,7 +569,9 @@ dimAnim.isRemovedOnCompletion = false
 dimLayer.add(dimAnim, forKey: "show")
 overlay.addSublayer(dimLayer)
 // only the text band (top-origin 39%~61%) is kept per typing frame
-let bandTop = 0.39 * H, bandH = 0.22 * H
+// band from a little above the tag to a little below the last big line
+let bandYs = hookYs(centered: true)
+let bandTop = (bandYs[0] - 0.045) * H, bandH = (bandYs[2] - bandYs[0] + 0.09) * H
 func band(_ img: CGImage) -> CGImage {
     let cut = img.cropping(to: CGRect(x: 0, y: bandTop, width: W, height: bandH))!
     return bitmap(Int(W), Int(bandH)) { ctx in ctx.draw(cut, in: CGRect(x: 0, y: 0, width: W, height: bandH)) }
@@ -627,7 +647,7 @@ let outroFrame = layerFrame(outroCap, capImage(outroCap))
 addTimed(capImage(outroCap), frame: outroFrame, start: outroStart + 0.1, end: outroEnd,
          fadeIn: 0.2, fadeOut: 0.01)
 if !OUTRO_LEAD.isEmpty {
-    let leadImg = outlined(OUTRO_LEAD, font: font(DISPLAY_FONT, 54), fill: cream,
+    let leadImg = outlined(OUTRO_LEAD, font: font(DISPLAY_FONT, OUTRO_LEAD_SIZE), fill: cream,
                            stroke: NSColor(white: 0.08, alpha: 1), strokePct: 9, glow: 14, kern: -1)
     let lw = CGFloat(leadImg.width), lh = CGFloat(leadImg.height)
     addTimed(leadImg, frame: CGRect(x: (W - lw) / 2, y: outroFrame.maxY - 24 - 24 + 14, width: lw, height: lh),
