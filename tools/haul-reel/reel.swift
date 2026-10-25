@@ -50,13 +50,15 @@ let HOOK_END = 3.2
 let HOOK_PER_CHAR = 0.04
 // 엔딩: 버건디 전신 컷(3.2~4.6)을 한 번 더 붙이고 댓글 유도 문구
 let OUTRO_FROM = 3.2, OUTRO_LEN = 1.5
+// true: 엔딩을 따로 붙이지 않고 컷편집본의 마지막 OUTRO_LEN초(이어지는 장면) 위에 엔딩 문구를 띄운다. OUTRO_FROM은 안 씀
+let OUTRO_INLINE = true
 let OUTRO_TEXT = "댓글에 '자라' 남겨주세요"
 // 엔딩 큰 글씨 위에 작게 붙는 줄 ("" = 없음)
 let OUTRO_LEAD = "제품명, 가격, 착용 사이즈 등 궁금하신 분들은"
 // 엔딩 글자 크기: 큰 줄 / 위 작은 줄 (하울 릴스: 84 / 54)
 let OUTRO_SIZE: CGFloat = 70, OUTRO_LEAD_SIZE: CGFloat = 40
 // 훅 맨 윗줄 (작은 태그). 하울 릴스는 "[저장 필수]", 패션 릴스는 고정 타겟 키워드
-let HOOK_TAG = "162cm 대기업 직장인"
+let HOOK_TAG = ""  // "" = 태그 없음
 // true: 태그를 작은 알약 모양 배경에 넣어 큰 제목 바로 위에 붙인다, false: 큰 노랑 글자 (하울 릴스)
 let HOOK_TAG_CHIP = true
 // 알약 배경 (훅 태그·맨 위 시리즈 라벨): 흰 배경 + 먹색 글자. 오프닝에선 태그가 왼쪽부터 닦이듯 그라데이션으로 들어온다
@@ -70,6 +72,8 @@ let HOOK_LINE1_Y: CGFloat = 0.41
 // 썸네일 로고 글자 ("" = 없음). 머리 위에 크게, Didot 글꼴. 사람을 따로 오려 로고 위에 얹어 머리가 로고를 살짝 가린다
 let THUMB_LOGO = "ZARA"
 let THUMB_LOGO_COLOR = NSColor.black
+// 영상 내내 맨 위에 로고 고정 (THUMB_LOGO 글자). 높이·폭은 화면 비율
+let VIDEO_LOGO = true, VIDEO_LOGO_Y: CGFloat = 0.065, VIDEO_LOGO_WIDTH: CGFloat = 0.6
 // 썸네일 큰 제목: "" = 오프닝과 같은 두 줄. 값이 있으면 썸네일만 이 문구로 ("/" = 줄바꿈, 둘째 줄이 더 크다)
 let THUMB_TITLE = "자라 맨즈 아우터/이건 사지 마세요.."
 // 썸네일 제목 첫 줄 높이 (화면 위에서부터 비율, 가운데 기준). 0 = 오프닝 문구와 같은 높이
@@ -102,8 +106,7 @@ let caps: [Cap] = [
 
     // 1. 버건디 퀼팅 재킷 (3.2~9.3)
     Cap(start: 3.2, end: 9.3, text: "릴렉스핏 퀼팅 재킷 | 149,900원", style: .title),
-    Cap(start: 3.2, end: 5.0, text: "톤다운된 버건디 컬러로\n늦가을 분위기 끝", style: .main),
-    Cap(start: 5.0, end: 7.0, text: "162cm, 남자 S 착용", style: .main),
+    Cap(start: 3.2, end: 7.0, text: "톤다운된 버건디 컬러로\n늦가을 분위기 끝", style: .main),
     Cap(start: 7.0, end: 9.3, text: "안에 퀼팅 안감이\n도톰하게 들어있어서", style: .main),
     Cap(start: 7.3, end: 9.3, text: "초가을 말고 지금 입기 딱!", style: .box),
 
@@ -119,11 +122,11 @@ let caps: [Cap] = [
     Cap(start: 16.3, end: 19.1, text: "엉덩이 덮는 기장이라", style: .main),
     Cap(start: 16.6, end: 19.1, text: "와이드 팬츠랑 찰떡", style: .box),
 
-    // 4. 체크 안감 야상 (19.1~23.9) — 제품명 미확인, 가격은 택 기준
+    // 4. 체크 안감 야상 (19.1~23.9, 엔딩 23.9~25.4는 야상 숄더백 컷이 이어짐) — 제품명 미확인, 가격은 택 기준
     Cap(start: 19.1, end: END, text: "체크 안감 야상 | 139,900원", style: .title),
-    Cap(start: 19.1, end: 20.3, text: "허리 스트링으로\n핏 조절 가능", style: .main),
-    Cap(start: 20.3, end: 21.6, text: "열면 체크 안감이\n포인트", style: .main),
-    Cap(start: 21.6, end: END, text: "큰 숄더백이랑 들면\n출근룩 완성", style: .main),
+    Cap(start: 19.1, end: 20.3, text: "화사한 베이지 컬러 야상", style: .main),
+    Cap(start: 20.3, end: 21.5, text: "허리 스트링으로 핏 조절 가능하고", style: .main),
+    Cap(start: 21.5, end: END, text: "열면 체크 안감이 포인트", style: .main),
 ]
 
 // MARK: - drawing helpers
@@ -227,7 +230,7 @@ func capImage(_ c: Cap) -> CGImage {
 // center y measured from top, as a fraction of height
 func centerY(_ c: Cap) -> CGFloat {
     switch c.style {
-    case .series: return 0.125
+    case .series: return VIDEO_LOGO ? 0.14 : 0.125
     case .outro: return 0.50
     case .title: return TITLE_BOTTOM ? 0.775 : 0.235
     case .main: return c.text.contains("\n") ? 0.625 : 0.64
@@ -296,7 +299,7 @@ let hookCharCount = hookLines.enumerated().reduce(0) { $0 + (HOOK_TAG_CHIP && $1
 // pill tag wipe-in: starts at TAG_WIPE_START, takes TAG_WIPE_LEN; typing of the big lines starts after it
 let TAG_WIPE_START = 0.1, TAG_WIPE_LEN = 0.45
 // typewriter timing: first character at 0.15s, one every 0.05s; hook shown until HOOK_END
-let typeStart = HOOK_TAG_CHIP ? TAG_WIPE_START + TAG_WIPE_LEN : 0.15, perChar = HOOK_PER_CHAR, hookEnd = HOOK_END
+let typeStart = HOOK_TAG_CHIP && !HOOK_TAG.isEmpty ? TAG_WIPE_START + TAG_WIPE_LEN : 0.15, perChar = HOOK_PER_CHAR, hookEnd = HOOK_END
 
 // 3-tier hook text. thumbnail: above the plush toys; video intro: screen center.
 // visible: how many characters are typed so far (typewriter); lines stay left-anchored so text does not shift.
@@ -326,14 +329,14 @@ func drawPill(_ ctx: CGContext, _ r: CGRect) {
 }
 
 // brand wordmark (Didot, letters pulled tight like the ZARA logo), about 86% of the width, near the top
-func drawLogo(_ ctx: CGContext) {
+func drawLogo(_ ctx: CGContext, y: CGFloat = THUMB_LOGO_Y, widthFrac: CGFloat = 0.86) {
     var size: CGFloat = 400
     func attr(_ sz: CGFloat) -> NSAttributedString {
         NSAttributedString(string: THUMB_LOGO, attributes: [.font: font("Didot", sz), .foregroundColor: THUMB_LOGO_COLOR, .kern: -sz * 0.06])
     }
-    while attr(size).size().width > W * 0.86 { size -= 4 }
+    while attr(size).size().width > W * widthFrac { size -= 4 }
     let a = attr(size), sz = a.size()
-    a.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - THUMB_LOGO_Y * H - sz.height / 2))
+    a.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - y * H - sz.height / 2))
 }
 // 로고 높이 (화면 위에서부터 비율, 가운데 기준)
 let THUMB_LOGO_Y = CGFloat(Double(env["THUMB_LOGO_Y"] ?? "") ?? 0.19)
@@ -393,7 +396,7 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
         var left = visible
         for (i, l) in hookLines.enumerated() {
             if i == 0 && HOOK_TAG_CHIP {
-                if !skipTag && !(tag && !THUMB_SHOW_TAG) { let p = tagPill(centered: centered); drawPill(ctx, p.rect); p.text.draw(at: p.origin) }
+                if !skipTag && !HOOK_TAG.isEmpty && !(tag && !THUMB_SHOW_TAG) { let p = tagPill(centered: centered); drawPill(ctx, p.rect); p.text.draw(at: p.origin) }
                 continue
             }
             // thumbnail: big lines in the thumbnail font; a THUMB_TITLE replaces both lines with one
@@ -468,14 +471,18 @@ let useCapcut = sfxMode == "capcut"
 if sfxMode.isEmpty, let aSrc = asset.tracks(withMediaType: .audio).first {
     let aTrack = comp.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)!
     try! aTrack.insertTimeRange(CMTimeRange(start: .zero, duration: aSrc.timeRange.duration), of: aSrc, at: .zero)
-    try! aTrack.insertTimeRange(CMTimeRange(start: CMTime(seconds: OUTRO_FROM, preferredTimescale: 600),
-                                            duration: CMTime(seconds: OUTRO_LEN, preferredTimescale: 600)),
-                                of: aSrc, at: range.duration)
+    if !OUTRO_INLINE {
+        try! aTrack.insertTimeRange(CMTimeRange(start: CMTime(seconds: OUTRO_FROM, preferredTimescale: 600),
+                                                duration: CMTime(seconds: OUTRO_LEN, preferredTimescale: 600)),
+                                    of: aSrc, at: range.duration)
+    }
 }
-let outroStart = CMTimeGetSeconds(range.duration)
-try! vTrack.insertTimeRange(CMTimeRange(start: CMTime(seconds: OUTRO_FROM, preferredTimescale: 600),
-                                        duration: CMTime(seconds: OUTRO_LEN, preferredTimescale: 600)),
-                            of: vSrc, at: range.duration)
+let outroStart = CMTimeGetSeconds(range.duration) - (OUTRO_INLINE ? OUTRO_LEN : 0)
+if !OUTRO_INLINE {
+    try! vTrack.insertTimeRange(CMTimeRange(start: CMTime(seconds: OUTRO_FROM, preferredTimescale: 600),
+                                            duration: CMTime(seconds: OUTRO_LEN, preferredTimescale: 600)),
+                                of: vSrc, at: range.duration)
+}
 let total = CMTimeRange(start: .zero, duration: comp.duration)
 
 // MARK: - CapCut sound effects (clips cut from the user's CapCut edit of 1탄, 2026-10-25)
@@ -696,7 +703,7 @@ typeGroup.isRemovedOnCompletion = false
 typeLayer.add(typeGroup, forKey: "type")
 overlay.addSublayer(typeLayer)
 // pill tag: wipes in from the left with a soft gradient edge, then fades out with the hook
-if HOOK_TAG_CHIP {
+if HOOK_TAG_CHIP && !HOOK_TAG.isEmpty {
     let p = tagPill(centered: true)
     let tagLayer = CALayer()
     tagLayer.frame = p.rect
@@ -770,6 +777,14 @@ for c in caps {
     }
     placed.append((c, f))
     addTimed(img, frame: f, start: c.start, end: c.end)
+}
+// brand logo pinned at the top for the whole video (no cut-out: it sits above the head)
+if VIDEO_LOGO {
+    let logoH = 0.12 * H
+    addTimed(bitmap(Int(W), Int(logoH)) { ctx in
+        ctx.translateBy(x: 0, y: logoH - H)
+        drawLogo(ctx, y: VIDEO_LOGO_Y, widthFrac: VIDEO_LOGO_WIDTH)
+    }, frame: CGRect(x: 0, y: H - logoH, width: W, height: logoH), start: 0, end: CMTimeGetSeconds(total.duration), fadeIn: 0.01, fadeOut: 0.01)
 }
 
 let vc = AVMutableVideoComposition()
