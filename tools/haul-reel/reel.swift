@@ -307,8 +307,11 @@ let range = CMTimeRange(start: .zero, duration: vSrc.timeRange.duration)
 let vTrack = comp.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)!
 try! vTrack.insertTimeRange(range, of: vSrc, at: .zero)
 // 소리: 기본은 원본 소리(+엔딩 구간 소리). SFX=1이면 원본 소리를 빼고 합성 효과음만 넣는다.
-let useSFX = env["SFX"] != nil
-if !useSFX, let aSrc = asset.tracks(withMediaType: .audio).first {
+// SFX=capcut: 사용자가 캡컷에서 고른 효과음(assets/sfx/)을 1탄과 같은 규칙으로 배치. SFX=1: 합성 효과음(안 씀)
+let sfxMode = env["SFX"] ?? ""
+let useSFX = sfxMode == "1"
+let useCapcut = sfxMode == "capcut"
+if sfxMode.isEmpty, let aSrc = asset.tracks(withMediaType: .audio).first {
     let aTrack = comp.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)!
     try! aTrack.insertTimeRange(CMTimeRange(start: .zero, duration: aSrc.timeRange.duration), of: aSrc, at: .zero)
     try! aTrack.insertTimeRange(CMTimeRange(start: CMTime(seconds: OUTRO_FROM, preferredTimescale: 600),
@@ -320,6 +323,39 @@ try! vTrack.insertTimeRange(CMTimeRange(start: CMTime(seconds: OUTRO_FROM, prefe
                                         duration: CMTime(seconds: OUTRO_LEN, preferredTimescale: 600)),
                             of: vSrc, at: range.duration)
 let total = CMTimeRange(start: .zero, duration: comp.duration)
+
+// MARK: - CapCut sound effects (clips cut from the user's CapCut edit of 1탄, 2026-10-25)
+if useCapcut {
+    let sfxDir = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        .appendingPathComponent("../../assets/sfx").standardized
+    // every clip goes on ONE audio track (separate tracks stay unmixed in the MP4 and players play only the first)
+    var events: [(String, Double)] = []
+    func place(_ name: String, at t: Double) { events.append((name, max(0, t))) }
+    // 1) 타자기: 오프닝 내내
+    place("typing", at: 0.05)
+    // 2) 클릭: 제품 번호가 바뀔 때
+    let titles = caps.filter { $0.style == .title }.sorted { $0.start < $1.start }
+    for c in titles { place("click", at: c.start) }
+    // 3) 전환음: 제품 사이에 빈 화면(0.3초 이상 틈)이 있을 때, 앞 제품이 끝나기 직전
+    for (a, b) in zip(titles, titles.dropFirst()) where b.start - a.end >= 0.3 { place("transition", at: a.end - 0.3) }
+    // 4) 딩: 첫 노랑 강조 자막
+    if let first = caps.filter({ $0.style == .box }).min(by: { $0.start < $1.start }) { place("ding", at: first.start) }
+    // 5) 엔딩 음
+    place("outro", at: outroStart + 0.2)
+
+    let sfxTrack = comp.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)!
+    let sorted = events.sorted { $0.1 < $1.1 }
+    for (k, e) in sorted.enumerated() {
+        let clip = AVURLAsset(url: sfxDir.appendingPathComponent("\(e.0).m4a"))
+        guard let src = clip.tracks(withMediaType: .audio).first else { fatalError("missing sfx: \(e.0)") }
+        let at = CMTime(seconds: e.1, preferredTimescale: 600)
+        // trim so a clip never runs into the next one or past the video end
+        let next = k + 1 < sorted.count ? CMTime(seconds: sorted[k + 1].1, preferredTimescale: 600) : total.duration
+        let dur = min(src.timeRange.duration, next - at)
+        guard dur > .zero else { continue }
+        try! sfxTrack.insertTimeRange(CMTimeRange(start: .zero, duration: dur), of: src, at: at)
+    }
+}
 
 if useSFX {
     // MARK: - sound effects (synthesized like apps/shorts-editor/sfx.js, no files or licenses needed)

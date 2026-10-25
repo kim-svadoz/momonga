@@ -19,7 +19,7 @@
 swift tools/haul-reel/frames.swift <원본.MOV> <작업폴더>   # 변화량이 stdout, sheet*.jpg 생성
 # 2) reel.swift의 caps 배열, hookLines, 썸네일 꼬리표, 썸네일 시점(thumbBg)을 이번 영상에 맞게 고친다
 # 3) 렌더
-swift tools/haul-reel/reel.swift <원본.MOV> output/YYMMDD/reels_<주제>/
+SFX=capcut swift tools/haul-reel/reel.swift <원본.MOV> output/YYMMDD/reels_<주제>/
 # 썸네일만 다른 글꼴로 뽑기
 THUMB_ONLY=1 THUMB_FONT=<PostScript 이름> THUMB_OUT=<경로.jpg> swift tools/haul-reel/reel.swift <원본.MOV> /tmp
 ```
@@ -35,7 +35,9 @@ THUMB_ONLY=1 THUMB_FONT=<PostScript 이름> THUMB_OUT=<경로.jpg> swift tools/h
 - 가격: 아래쪽 작게, 박스·음영 없음. 다른 곳에서 산 물건은 괄호로 작게 "(나고야 관광지에서 구매)"
 - 배경 박스는 쓰지 않는다 (검정 박스는 촌스럽다는 피드백)
 - 엔딩: 원본 쇼핑 떼샷 구간(`OUTRO_FROM`, 2초)을 다시 붙이고 "곧 N탄도 가져올게요!" (부크크 명조) + 별 스티커
-- 소리: 기본은 원본 소리 그대로. 효과음은 사용자가 캡컷에서 직접 넣는다 (합성 효과음은 촌스럽다는 피드백, 2026-10-25). `SFX=1`로 켜면 원본 소리를 빼고 합성 효과음(타자기·클릭·딩·코인)을 넣지만 쓰지 않는다.
+- 소리: **2탄부터 `SFX=capcut`으로 렌더한다** (원본 소리 빼고 캡컷 효과음 배치). 효과음 파일은 `assets/sfx/` (사용자가 1탄을 캡컷에서 편집한 영상에서 잘라낸 것, git 제외)
+  - typing: 오프닝 내내 (0.05초~) / click: 제품 번호가 바뀔 때 / transition: 제품 사이 빈 화면(0.3초 이상 틈)이 있으면 앞 제품 끝 0.3초 전 / ding: 첫 노랑 강조 자막 / outro: 엔딩 문구 0.2초 뒤
+  - 효과음을 바꾸려면 같은 이름의 m4a 파일만 바꿔 넣는다. 합성 효과음(`SFX=1`)은 촌스럽다는 피드백으로 쓰지 않는다.
 
 ## 알아둘 점
 
