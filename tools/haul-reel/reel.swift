@@ -41,7 +41,7 @@ let chipInk = NSColor(red: 0.12, green: 0.16, blue: 0.08, alpha: 1)
 enum Style { case title, main, box, cute, lead, chip, gloss, price, note, series, outro }
 struct Cap { let start: Double; let end: Double; let text: String; let style: Style }
 
-// ===== 회차 데이터: 자라 맨즈 아우터 (162 출근룩) v3 — 오프닝 4벌 숏컷, 컷 빠르게, 별 스티커 없음 =====
+// ===== 회차 데이터: 자라 맨즈 아우터 (162 출근룩) v6 — 제목 "이건 사지 마세요..", 대본 v2 =====
 // 이전 회차: output/261025/reels_돈키호테 추천템 1탄/reel_1탄.swift, output/261025/reels_돈키호테 추천템 2탄/reel_2탄.swift
 let END = 23.9
 // 오프닝(훅) 길이: 1~4번 착장 전신 숏컷(0.8초씩) 위에 훅 문구. 다 쳐진 뒤 2초 가까이 머문다
@@ -78,7 +78,12 @@ let THUMB_TITLE_Y: CGFloat = 0.43
 let THUMB_SHOW_TAG = false
 // 썸네일 큰 제목 글꼴 (환경변수 THUMB_FONT가 있으면 그게 우선)
 let THUMB_FONT_NAME = "BookkMyungjo-Bd"
-let HOOK_LINE1 = "자라 맨즈에서 찾은", HOOK_LINE2 = "여자 출근룩 아우터"
+// 오프닝 큰 제목 두 줄 (첫 줄 작게, 둘째 줄 크게 — 썸네일과 같은 모양)
+let HOOK_LINE1 = "자라 맨즈 아우터", HOOK_LINE2 = "이건 사지 마세요.."
+let HOOK_LINE1_SIZE: CGFloat = 56, HOOK_LINE2_SIZE: CGFloat = 100
+let HOOK_LINE2_COLOR = NSColor.white
+// 오프닝 큰 제목 밑에 작게 붙는 줄 ("" = 없음). 얇고 귀여운 손글씨
+let HOOK_LINE3 = "(저만 입고 싶으니까..)", HOOK_LINE3_FONT = "YoonChildfundkoreaManSeh"
 // 별·점 스티커 (썸네일·오프닝·엔딩). 하울 릴스에만 쓴다
 let STICKERS = false
 // 글꼴: 훅 큰 제목·엔딩 문구 / 메인 자막 (하울 릴스: BookkMyungjo-Bd / Pretendard-SemiBold)
@@ -87,7 +92,7 @@ let DISPLAY_FONT = "Pretendard-SemiBold", MAIN_FONT = "Pretendard-Medium"
 let TITLE_BOTTOM = true
 // true: 맨 위 시리즈 라벨을 색 배경 띠로
 let SERIES_CHIP = true
-let SERIES_LABEL = "162 출근룩 | 자라 맨즈 아우터"
+let SERIES_LABEL = "162cm 직장인 | 자라 맨즈 디깅"
 let THUMB_TAG = "두툼한 초겨울 아우터 모음zip."
 // true: 썸네일 꼬리표를 네모 배경 띠로 (THUMB_TAG_Y 높이, THUMB_TAG_BG 색), false: 제목 밑 손글씨
 let THUMB_TAG_CHIP = true, THUMB_TAG_Y: CGFloat = 0.545
@@ -97,32 +102,28 @@ let caps: [Cap] = [
 
     // 1. 버건디 퀼팅 재킷 (3.2~9.3)
     Cap(start: 3.2, end: 9.3, text: "릴렉스핏 퀼팅 재킷 | 149,900원", style: .title),
-    Cap(start: 3.2, end: 5.0, text: "버건디 컬러 하나로\n분위기 끝", style: .main),
-    Cap(start: 5.0, end: 7.0, text: "162cm, 남자 S 입었어요", style: .main),
-    Cap(start: 7.0, end: 9.3, text: "안에 퀼팅 안감이\n두툼하게 들어있어요", style: .main),
+    Cap(start: 3.2, end: 5.0, text: "톤다운된 버건디 컬러로\n늦가을 분위기 끝", style: .main),
+    Cap(start: 5.0, end: 7.0, text: "162cm, 남자 S 착용", style: .main),
+    Cap(start: 7.0, end: 9.3, text: "안에 퀼팅 안감이\n도톰하게 들어있어서", style: .main),
     Cap(start: 7.3, end: 9.3, text: "초가을 말고 지금 입기 딱!", style: .box),
 
     // 2. 바버맛 퀼팅 재킷 (9.3~14.3)
     Cap(start: 9.3, end: 14.3, text: "콤비 기하학적 퀼팅 재킷 | 109,900원", style: .title),
-    Cap(start: 9.3, end: 10.5, text: "바버 느낌 퀼팅 재킷이\n10만원대?!", style: .main),
-    Cap(start: 10.5, end: 11.5, text: "다이아 퀼팅이\n도톰하게 들어가서", style: .main),
-    Cap(start: 10.7, end: 11.5, text: "요즘 날씨에 딱", style: .box),
-    Cap(start: 11.5, end: 12.8, text: "카라랑 소매는 코듀로이", style: .main),
-    Cap(start: 12.8, end: 14.3, text: "디테일까지 바버 맛..", style: .main),
+    Cap(start: 9.3, end: 11.4, text: "10만원대 바버맛 퀼팅 자켓 실존", style: .main),
+    Cap(start: 11.4, end: 14.3, text: "카라랑 소매는 코듀로이", style: .main),
+    Cap(start: 11.9, end: 14.3, text: "디테일까지 바버 맛..", style: .box),
 
     // 3. 페이크 레더 재킷 (14.3~19.1)
     Cap(start: 14.3, end: 19.1, text: "릴렉스핏 페이크 레더 | 149,900원", style: .title),
-    Cap(start: 14.3, end: 15.6, text: "출근룩에 하나 있으면\n든든한 레더 재킷", style: .main),
-    Cap(start: 15.6, end: 17.4, text: "엉덩이 덮는 기장이라", style: .main),
-    Cap(start: 15.8, end: 17.4, text: "와이드 팬츠랑 찰떡", style: .box),
-    Cap(start: 17.4, end: 19.1, text: "블랙, 브라운 두 가지 컬러", style: .main),
+    Cap(start: 14.3, end: 16.3, text: "일잘러 출근룩 필수템\n블랙 레더 재킷", style: .main),
+    Cap(start: 16.3, end: 19.1, text: "엉덩이 덮는 기장이라", style: .main),
+    Cap(start: 16.6, end: 19.1, text: "와이드 팬츠랑 찰떡", style: .box),
 
     // 4. 체크 안감 야상 (19.1~23.9) — 제품명 미확인, 가격은 택 기준
     Cap(start: 19.1, end: END, text: "체크 안감 야상 | 139,900원", style: .title),
     Cap(start: 19.1, end: 20.3, text: "허리 스트링으로\n핏 조절 가능", style: .main),
-    Cap(start: 20.3, end: 21.8, text: "열면 체크 안감이 보여서", style: .main),
-    Cap(start: 20.5, end: 21.8, text: "포인트로 예뻐요", style: .box),
-    Cap(start: 21.8, end: END, text: "큰 숄더백이랑 들면\n출근룩 완성", style: .main),
+    Cap(start: 20.3, end: 21.6, text: "열면 체크 안감이\n포인트", style: .main),
+    Cap(start: 21.6, end: END, text: "큰 숄더백이랑 들면\n출근룩 완성", style: .main),
 ]
 
 // MARK: - drawing helpers
@@ -238,9 +239,9 @@ func centerY(_ c: Cap) -> CGFloat {
 
 let hookLines: [(String, String, CGFloat, NSColor, CGFloat)] = [
     HOOK_TAG_CHIP ? (HOOK_TAG, "Pretendard-Medium", 34, PILL_INK, 0) : (HOOK_TAG, "Pretendard-ExtraBold", 60, yellow, -1),
-    (HOOK_LINE1, HOOK_FONT, 86, .white, -3),
-    (HOOK_LINE2, HOOK_FONT, 88, yellow, -3),
-]
+    (HOOK_LINE1, HOOK_FONT, HOOK_LINE1_SIZE, .white, -2),
+    (HOOK_LINE2, HOOK_FONT, HOOK_LINE2_SIZE, HOOK_LINE2_COLOR, -3),
+] + (HOOK_LINE3.isEmpty ? [] : [(HOOK_LINE3, HOOK_LINE3_FONT, 50, NSColor.white, 0)])
 // 5-point star sticker; (x, y) are fractions from the top-left
 func star(_ ctx: CGContext, _ x: CGFloat, _ y: CGFloat, _ r: CGFloat, _ fill: NSColor, _ angle: CGFloat) {
     let c = CGPoint(x: x * W, y: H - y * H)
@@ -301,12 +302,12 @@ let typeStart = HOOK_TAG_CHIP ? TAG_WIPE_START + TAG_WIPE_LEN : 0.15, perChar = 
 // visible: how many characters are typed so far (typewriter); lines stay left-anchored so text does not shift.
 // hook line y positions (center, fraction from top); the small pill tag sits right on top of the first big line
 func hookYs(centered: Bool) -> [CGFloat] {
-    var ys: [CGFloat] = centered ? [HOOK_LINE1_Y - 0.06, HOOK_LINE1_Y, HOOK_LINE1_Y + 0.06] : [0.165, 0.225, 0.285]
-    if HOOK_TAG_CHIP {
-        let tagH = NSAttributedString(string: hookLines[0].0, attributes: [.font: font(hookLines[0].1, hookLines[0].2)]).size().height
-        let l1H = NSAttributedString(string: hookLines[1].0, attributes: [.font: font(hookLines[1].1, hookLines[1].2)]).size().height
-        ys[0] = ys[1] - (l1H / 2 + tagH / 2 + 26) / H
-    }
+    // lines stack down from the first big line by their own heights; the tag sits on top of the first big line
+    let hs = hookLines.map { NSAttributedString(string: $0.0, attributes: [.font: font($0.1, $0.2)]).size().height }
+    var ys = [CGFloat](repeating: 0, count: hookLines.count)
+    ys[1] = centered ? HOOK_LINE1_Y : 0.225
+    for i in 2..<hookLines.count { ys[i] = ys[i - 1] + (hs[i - 1] / 2 + hs[i] / 2 + 6) / H }
+    ys[0] = ys[1] - (hs[1] / 2 + hs[0] / 2 + (HOOK_TAG_CHIP ? 26 : 10)) / H
     return ys
 }
 // pill tag: text + rounded background rect, in bitmap coordinates (bottom-left origin)
@@ -661,7 +662,7 @@ overlay.addSublayer(dimLayer)
 // only the text band (top-origin 39%~61%) is kept per typing frame
 // band from a little above the tag to a little below the last big line
 let bandYs = hookYs(centered: true)
-let bandTop = (bandYs[0] - 0.045) * H, bandH = (bandYs[2] - bandYs[0] + 0.09) * H
+let bandTop = (bandYs[0] - 0.045) * H, bandH = (bandYs[bandYs.count - 1] - bandYs[0] + 0.09) * H
 func band(_ img: CGImage) -> CGImage {
     let cut = img.cropping(to: CGRect(x: 0, y: bandTop, width: W, height: bandH))!
     return bitmap(Int(W), Int(bandH)) { ctx in ctx.draw(cut, in: CGRect(x: 0, y: 0, width: W, height: bandH)) }
