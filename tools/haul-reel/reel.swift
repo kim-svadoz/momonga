@@ -5,6 +5,7 @@ import QuartzCore
 import CoreImage
 import ImageIO
 import UniformTypeIdentifiers
+import Vision
 
 // usage: swift reel.swift <input.mov> <outdir>
 // v2: lazy.eunn 스타일 (번호 제품명 명조 + 흰 글자 검정 테두리 자막 + 검정 박스 강조)
@@ -66,10 +67,13 @@ let PILL_RADIUS: CGFloat = 0
 let HOOK_FONT = "BookkMyungjo-Bd"
 // 오프닝 큰 제목 첫 줄 높이 (화면 위에서부터 비율). 0.41이면 태그가 전신 컷의 가슴 높이에 온다 (하울 릴스: 0.495)
 let HOOK_LINE1_Y: CGFloat = 0.41
-// 썸네일 로고 글자 ("" = 없음). 화면 위쪽에 크게, Didot 글꼴로
-let THUMB_LOGO = ""
-// 썸네일 큰 제목: "" = 오프닝과 같은 두 줄, 값이 있으면 썸네일만 이 한 줄로 (흰 글자)
-let THUMB_TITLE = "자라 맨즈 아우터 이건 사지 마세요"
+// 썸네일 로고 글자 ("" = 없음). 머리 위에 크게, Didot 글꼴. 사람을 따로 오려 로고 위에 얹어 머리가 로고를 살짝 가린다
+let THUMB_LOGO = "ZARA"
+let THUMB_LOGO_COLOR = NSColor.black
+// 썸네일 큰 제목: "" = 오프닝과 같은 두 줄. 값이 있으면 썸네일만 이 문구로 ("/" = 줄바꿈, 둘째 줄이 더 크다)
+let THUMB_TITLE = "자라 맨즈 아우터/이건 사지 마세요"
+// 썸네일에 훅 태그(고정 타겟 키워드)를 넣을지
+let THUMB_SHOW_TAG = false
 // 썸네일 큰 제목 글꼴 (환경변수 THUMB_FONT가 있으면 그게 우선)
 let THUMB_FONT_NAME = "ChosunGu"
 let HOOK_LINE1 = "자라 맨즈에서 찾은", HOOK_LINE2 = "여자 출근룩 아우터"
@@ -315,6 +319,38 @@ func drawPill(_ ctx: CGContext, _ r: CGRect) {
     ctx.setFillColor(PILL_BG.cgColor); ctx.fillPath()
 }
 
+// brand wordmark (Didot, letters pulled tight like the ZARA logo), about 86% of the width, near the top
+func drawLogo(_ ctx: CGContext) {
+    var size: CGFloat = 400
+    func attr(_ sz: CGFloat) -> NSAttributedString {
+        NSAttributedString(string: THUMB_LOGO, attributes: [.font: font("Didot", sz), .foregroundColor: THUMB_LOGO_COLOR, .kern: -sz * 0.06])
+    }
+    while attr(size).size().width > W * 0.86 { size -= 4 }
+    let a = attr(size), sz = a.size()
+    a.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - THUMB_LOGO_Y * H - sz.height / 2))
+}
+// 로고 높이 (화면 위에서부터 비율, 가운데 기준)
+let THUMB_LOGO_Y = CGFloat(Double(env["THUMB_LOGO_Y"] ?? "") ?? 0.19)
+// person segmentation (Vision) as a grayscale clip mask, scaled to the frame
+func personMask(_ img: CGImage) -> CGImage? {
+    let req = VNGeneratePersonSegmentationRequest()
+    req.qualityLevel = .accurate
+    req.outputPixelFormat = kCVPixelFormatType_OneComponent8
+    do { try VNImageRequestHandler(cgImage: img).perform([req]) } catch { print("person mask failed: \(error)"); return nil }
+    guard let buf = req.results?.first?.pixelBuffer else { return nil }
+    let ci = CIImage(cvPixelBuffer: buf)
+    let scaled = ci.transformed(by: CGAffineTransform(scaleX: W / ci.extent.width, y: H / ci.extent.height))
+    guard let rgb = CIContext().createCGImage(scaled, from: CGRect(x: 0, y: 0, width: W, height: H)) else { return nil }
+    // clip(to:mask:) wants a gray image
+    return bitmapGray(Int(W), Int(H)) { $0.draw(rgb, in: CGRect(x: 0, y: 0, width: W, height: H)) }
+}
+func bitmapGray(_ w: Int, _ h: Int, _ draw: (CGContext) -> Void) -> CGImage {
+    let ctx = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: 0,
+                        space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.none.rawValue)!
+    draw(ctx)
+    return ctx.makeImage()!
+}
+
 // skipTag: leave the pill tag out (the video draws it as its own wipe-in layer)
 func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim: Bool = true, tag: Bool = false, skipTag: Bool = false) -> CGImage {
     return bitmap(Int(W), Int(H)) { ctx in
@@ -330,6 +366,17 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
             ctx.setFillColor(NSColor.black.withAlphaComponent(thumbDim).cgColor)
             ctx.fill(CGRect(x: 0, y: 0, width: W, height: H))
         }
+        // thumbnail only: brand wordmark over the head, then the person cut out and laid back on top
+        if tag && !THUMB_LOGO.isEmpty, let bg = background {
+            drawLogo(ctx)
+            if let mask = personMask(bg) {
+                ctx.saveGState()
+                ctx.clip(to: CGRect(x: 0, y: 0, width: W, height: H), mask: mask)
+                ctx.draw(brightened(bg), in: CGRect(x: 0, y: 0, width: W, height: H))
+                if dim { ctx.setFillColor(NSColor.black.withAlphaComponent(thumbDim).cgColor); ctx.fill(CGRect(x: 0, y: 0, width: W, height: H)) }
+                ctx.restoreGState()
+            }
+        }
 
         let shadow = NSShadow()
         shadow.shadowColor = NSColor.black.withAlphaComponent(0.7)
@@ -340,21 +387,26 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
         var left = visible
         for (i, l) in hookLines.enumerated() {
             if i == 0 && HOOK_TAG_CHIP {
-                if !skipTag { let p = tagPill(centered: centered); drawPill(ctx, p.rect); p.text.draw(at: p.origin) }
+                if !skipTag && !(tag && !THUMB_SHOW_TAG) { let p = tagPill(centered: centered); drawPill(ctx, p.rect); p.text.draw(at: p.origin) }
                 continue
             }
             // thumbnail: big lines in the thumbnail font; a THUMB_TITLE replaces both lines with one
             let lineFont = tag ? (env["THUMB_FONT"] ?? THUMB_FONT_NAME) : l.1
             if tag && !THUMB_TITLE.isEmpty {
                 if i == 1 {
-                    var size = l.2
-                    var t = NSAttributedString(string: THUMB_TITLE, attributes: [.font: font(lineFont, size), .kern: l.4])
-                    while t.size().width > W - 100 { size -= 2; t = NSAttributedString(string: THUMB_TITLE, attributes: [.font: font(lineFont, size), .kern: l.4]) }
-                    let one = NSAttributedString(string: THUMB_TITLE, attributes: [
-                        .font: font(lineFont, size), .foregroundColor: NSColor.white, .shadow: shadow,
-                        .paragraphStyle: para(lineSpacing: 0), .kern: l.4])
-                    let sz = one.size()
-                    one.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - ys[1] * H - sz.height / 2))
+                    // up to two lines; the second (the punch line) is bigger. Each shrinks to fit the width.
+                    let parts = THUMB_TITLE.split(separator: "/").map { $0.trimmingCharacters(in: .whitespaces) }
+                    let sizes: [CGFloat] = parts.count > 1 ? [72, 112] : [l.2]
+                    let lineYs: [CGFloat] = parts.count > 1 ? [ys[1] - 0.035, ys[1] + 0.03] : [ys[1]]
+                    for (k, text) in parts.enumerated() {
+                        var size = sizes[k]
+                        while NSAttributedString(string: text, attributes: [.font: font(lineFont, size), .kern: l.4]).size().width > W - 100 { size -= 2 }
+                        let one = NSAttributedString(string: text, attributes: [
+                            .font: font(lineFont, size), .foregroundColor: NSColor.white, .shadow: shadow,
+                            .paragraphStyle: para(lineSpacing: 0), .kern: l.4])
+                        let sz = one.size()
+                        one.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - lineYs[k] * H - sz.height / 2))
+                    }
                 }
                 continue
             }
@@ -374,15 +426,8 @@ func hookImage(background: CGImage?, centered: Bool, visible: Int = Int.max, dim
             let tag = NSAttributedString(string: THUMB_TAG, attributes: [
                 .font: font("YoonChildfundkoreaDaeHan", 54), .foregroundColor: NSColor.white, .shadow: shadow])
             let sz = tag.size()
-            let tagY = THUMB_TITLE.isEmpty ? ys[2] + 0.06 : ys[1] + 0.06
+            let tagY = THUMB_TITLE.isEmpty ? ys[2] + 0.06 : THUMB_TITLE.contains("/") ? ys[1] + 0.1 : ys[1] + 0.06
             tag.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - tagY * H - sz.height / 2))
-        }
-        // thumbnail only: brand wordmark set in Didot (not the official logo file), centered above the hook text
-        if tag && !THUMB_LOGO.isEmpty {
-            let logo = NSAttributedString(string: THUMB_LOGO, attributes: [
-                .font: font("Didot", 190), .foregroundColor: NSColor.white, .kern: 6, .shadow: shadow])
-            let sz = logo.size()
-            logo.draw(at: CGPoint(x: (W - sz.width) / 2, y: H - (ys[0] - 0.11) * H - sz.height / 2))
         }
     }
 }
