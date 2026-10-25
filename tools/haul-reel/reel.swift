@@ -22,7 +22,7 @@ for f in (try? FileManager.default.contentsOfDirectory(atPath: fontDir)) ?? [] {
 }
 let env = ProcessInfo.processInfo.environment
 // thumbnail title font (big lines); THUMB_ONLY=1 writes only the thumbnail to THUMB_OUT
-let titleFont = env["THUMB_FONT"] ?? "Pretendard-Black"
+let titleFont = env["THUMB_FONT"] ?? "BookkMyungjo-Bd"
 func font(_ name: String, _ size: CGFloat) -> NSFont {
     guard let f = NSFont(name: name, size: size) else { fatalError("font missing: \(name)") }
     return f
@@ -289,7 +289,7 @@ gen.requestedTimeToleranceBefore = .zero
 gen.requestedTimeToleranceAfter = .zero
 // 2.4s: 치이카와·모몽가·하치와레 얼굴이 모두 보이는 전체샷
 let thumbBg = try? gen.copyCGImage(at: CMTime(seconds: 2.4, preferredTimescale: 600), actualTime: nil)
-writeJPEG(hookImage(background: thumbBg, centered: true, tag: true), env["THUMB_OUT"] ?? "\(outDir)/썸네일.jpg")
+writeJPEG(hookImage(background: thumbBg, centered: true, tag: true), env["THUMB_OUT"] ?? "\(outDir)/썸네일_\(titleFont).jpg")
 if env["THUMB_ONLY"] != nil { exit(0) }
 
 let parent = CALayer(), videoLayer = CALayer(), overlay = CALayer()
@@ -364,6 +364,8 @@ typeGroup.duration = hookEnd
 typeGroup.isRemovedOnCompletion = false
 typeLayer.add(typeGroup, forKey: "type")
 overlay.addSublayer(typeLayer)
+// star stickers during the intro, same as the thumbnail
+addTimed(bitmap(Int(W), Int(H)) { ctx in drawStickers(ctx) }, frame: full, start: 0, end: hookEnd)
 
 // CALayer origin is bottom-left here
 func layerFrame(_ c: Cap, _ img: CGImage) -> CGRect {
