@@ -175,7 +175,7 @@ func centerY(_ c: Cap) -> CGFloat {
 let hookLines: [(String, String, CGFloat, NSColor, CGFloat)] = [
     ("[저장 필수]", "Pretendard-ExtraBold", 60, yellow, -1),
     ("n번째 재구매중인", titleFont, 86, .white, -3),
-    ("돈키호테 쇼핑리스트 1탄", titleFont, 100, yellow, -4),
+    ("돈키호테 쇼핑리스트 1탄", titleFont, 88, yellow, -3),
 ]
 // 5-point star sticker; (x, y) are fractions from the top-left
 func star(_ ctx: CGContext, _ x: CGFloat, _ y: CGFloat, _ r: CGFloat, _ fill: NSColor, _ angle: CGFloat) {
