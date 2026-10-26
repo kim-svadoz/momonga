@@ -111,18 +111,20 @@ let caps: [Cap] = (SERIES_LABEL.isEmpty ? [] : [Cap(start: HOOK_END, end: END, t
 
     // 1. 버건디 퀼팅 재킷 (3.2~9.3)
     Cap(start: 3.2, end: 9.3, text: "릴렉스핏 퀼팅 재킷 | 149,900원", style: .title),
-    Cap(start: 3.2, end: 7.0, text: "톤다운된 버건디 컬러로\n늦가을 분위기 끝", style: .main),
+    Cap(start: 3.2, end: 7.0, text: "톤다운된 고급진 버건디 컬러 재킷", style: .main),
+    Cap(start: 3.5, end: 7.0, text: "늦가을 초겨울 분위기 낭낭", style: .cute),
     Cap(start: 7.0, end: 9.3, text: "안에 퀼팅 안감이\n도톰하게 들어있어서", style: .main),
     Cap(start: 7.3, end: 9.3, text: "초가을 말고 지금 입기 딱!", style: .box),
 
     // 2. 바버맛 퀼팅 재킷 (9.3~14.3)
     Cap(start: 9.3, end: 14.3, text: "콤비 기하학적 퀼팅 재킷 | 109,900원", style: .title),
     Cap(start: 9.3, end: 11.4, text: "10만원대 바버맛 퀼팅 자켓 실존", style: .main),
-    Cap(start: 11.4, end: 14.3, text: "카라랑 소매는 코듀로이", style: .main),
-    Cap(start: 11.9, end: 14.3, text: "디테일까지 바버 맛..", style: .box),
+    Cap(start: 11.4, end: 14.3, text: "카라, 소매 코듀로이 처리", style: .main),
+    Cap(start: 11.9, end: 14.3, text: "디테일까지 바버st에요", style: .box),
 
     // 3. 페이크 레더 재킷 (14.3~19.1)
     Cap(start: 14.3, end: 19.1, text: "릴렉스핏 페이크 레더 | 149,900원", style: .title),
+    Cap(start: 14.3, end: 16.3, text: "존예 대리님 느낌!", style: .lead),
     Cap(start: 14.3, end: 16.3, text: "일잘러 출근룩 필수템\n블랙 레더 재킷", style: .main),
     Cap(start: 16.3, end: 19.1, text: "엉덩이 덮는 기장이라", style: .main),
     Cap(start: 16.6, end: 19.1, text: "와이드 팬츠랑 찰떡", style: .box),
@@ -131,7 +133,7 @@ let caps: [Cap] = (SERIES_LABEL.isEmpty ? [] : [Cap(start: HOOK_END, end: END, t
     Cap(start: 19.1, end: END, text: "코튼 100% 숏 파카 | 139,900원", style: .title),
     Cap(start: 19.1, end: 20.3, text: "화사한 베이지 컬러 야상", style: .main),
     Cap(start: 20.3, end: 21.5, text: "허리 스트링으로 핏 조절 가능하고", style: .main),
-    Cap(start: 21.5, end: END, text: "체크 안감 포인트가 너무 예쁨", style: .main),
+    Cap(start: 21.5, end: END, text: "살짝 살짝 보이는\n체크 안감 포인트 너무 예뻐요", style: .main),
 ]
 
 // MARK: - drawing helpers
@@ -789,6 +791,16 @@ for c in caps {
     }
     placed.append((c, f))
     addTimed(img, frame: f, start: c.start, end: c.end)
+}
+// floating chips: small text on a colored strip placed anywhere (x, y = center as fractions from the top-left)
+let FLOATS: [(start: Double, end: Double, text: String, x: CGFloat, y: CGFloat, bg: NSColor)] = [
+    // 블랙 퀼팅을 손으로 쓰다듬는 순간, 손 오른쪽
+    (10.5, 11.4, "광택 너무 예쁨..", 0.70, 0.36, THUMB_TAG_BG),
+]
+for fl in FLOATS {
+    let img = boxed(fl.text, font: font("Pretendard-SemiBold", 34), color: chipInk, box: fl.bg, padX: 16, padY: 8)
+    let w = CGFloat(img.width), h = CGFloat(img.height)
+    addTimed(img, frame: CGRect(x: fl.x * W - w / 2, y: H - fl.y * H - h / 2, width: w, height: h), start: fl.start, end: fl.end)
 }
 // opening logo behind the head: one layer whose contents switch every frame (logo with the person cut out)
 if VIDEO_LOGO {
