@@ -47,7 +47,7 @@ let END = 23.9
 // 오프닝(훅) 길이: 1~4번 착장 전신 숏컷(0.8초씩) 위에 훅 문구. 다 쳐진 뒤 2초 가까이 머문다
 let HOOK_END = 3.2
 // 타자기 속도: 한 글자 간격(초)
-let HOOK_PER_CHAR = 0.04
+let HOOK_PER_CHAR = 0.065
 // 엔딩: 버건디 전신 컷(3.2~4.6)을 한 번 더 붙이고 댓글 유도 문구
 let OUTRO_FROM = 3.2, OUTRO_LEN = 1.5
 // true: 엔딩을 따로 붙이지 않고 컷편집본의 마지막 OUTRO_LEN초(이어지는 장면) 위에 엔딩 문구를 띄운다. OUTRO_FROM은 안 씀
@@ -91,6 +91,8 @@ let HOOK_LINE1_SIZE: CGFloat = 56, HOOK_LINE2_SIZE: CGFloat = 100
 let HOOK_LINE2_COLOR = NSColor.white
 // 오프닝 큰 제목 밑에 작게 붙는 줄 ("" = 없음). 얇고 귀여운 손글씨
 let HOOK_LINE3 = "저만 입고싶으니까..", HOOK_LINE3_FONT = "YoonChildfundkoreaManSeh"
+// 덧말 줄 색 / 큰 제목이 다 쳐진 뒤 덧말이 시작되기까지 쉬는 시간(초)
+let HOOK_LINE3_COLOR = NSColor(red: 1.0, green: 0.72, blue: 0.80, alpha: 1), HOOK_LINE3_PAUSE = 0.5
 // 별·점 스티커 (썸네일·오프닝·엔딩). 하울 릴스에만 쓴다
 let STICKERS = false
 // 글꼴: 훅 큰 제목·엔딩 문구 / 메인 자막 (하울 릴스: BookkMyungjo-Bd / Pretendard-SemiBold)
@@ -251,7 +253,7 @@ let hookLines: [(String, String, CGFloat, NSColor, CGFloat)] = [
     HOOK_TAG_CHIP ? (HOOK_TAG, "Pretendard-Medium", 34, PILL_INK, 0) : (HOOK_TAG, "Pretendard-ExtraBold", 60, yellow, -1),
     (HOOK_LINE1, HOOK_FONT, HOOK_LINE1_SIZE, .white, -2),
     (HOOK_LINE2, HOOK_FONT, HOOK_LINE2_SIZE, HOOK_LINE2_COLOR, -3),
-] + (HOOK_LINE3.isEmpty ? [] : [(HOOK_LINE3, HOOK_LINE3_FONT, 50, NSColor.white, 0)])
+] + (HOOK_LINE3.isEmpty ? [] : [(HOOK_LINE3, HOOK_LINE3_FONT, 50, HOOK_LINE3_COLOR, 0)])
 // 5-point star sticker; (x, y) are fractions from the top-left
 func star(_ ctx: CGContext, _ x: CGFloat, _ y: CGFloat, _ r: CGFloat, _ fill: NSColor, _ angle: CGFloat) {
     let c = CGPoint(x: x * W, y: H - y * H)
@@ -307,6 +309,10 @@ let hookCharCount = hookLines.enumerated().reduce(0) { $0 + (HOOK_TAG_CHIP && $1
 let TAG_WIPE_START = 0.1, TAG_WIPE_LEN = 0.45
 // typewriter timing: first character at 0.15s, one every 0.05s; hook shown until HOOK_END
 let typeStart = HOOK_TAG_CHIP && !HOOK_TAG.isEmpty ? TAG_WIPE_START + TAG_WIPE_LEN : 0.15, perChar = HOOK_PER_CHAR, hookEnd = HOOK_END
+// typed characters before the small line3 (it starts after HOOK_LINE3_PAUSE)
+let line3From = HOOK_LINE3.isEmpty ? Int.max : hookCharCount - HOOK_LINE3.count
+// time the n-th typed character appears (1-based)
+func charTime(_ n: Int) -> Double { typeStart + Double(n - 1) * perChar + (n > line3From ? HOOK_LINE3_PAUSE : 0) }
 
 // 3-tier hook text. thumbnail: above the plush toys; video intro: screen center.
 // visible: how many characters are typed so far (typewriter); lines stay left-anchored so text does not shift.
@@ -499,8 +505,13 @@ if useCapcut {
     // every clip goes on ONE audio track (separate tracks stay unmixed in the MP4 and players play only the first)
     var events: [(String, Double)] = []
     func place(_ name: String, at t: Double) { events.append((name, max(0, t))) }
-    // 1) 타자기: 오프닝 내내
+    // 1) 타자기: 글자가 쳐지는 동안만 (덧말 앞 쉬는 시간엔 멈춤). "" = 앞 소리를 여기서 끊는다
     place("typing", at: 0.05)
+    if line3From < hookCharCount {
+        place("", at: charTime(line3From) + perChar)
+        place("typing", at: charTime(line3From + 1) - 0.05)
+    }
+    place("", at: charTime(hookCharCount) + perChar + 0.05)
     // 2) 클릭: 제품 번호가 바뀔 때
     let titles = caps.filter { $0.style == .title }.sorted { $0.start < $1.start }
     for c in titles { place("click", at: c.start) }
@@ -514,6 +525,7 @@ if useCapcut {
     let sfxTrack = comp.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)!
     let sorted = events.sorted { $0.1 < $1.1 }
     for (k, e) in sorted.enumerated() {
+        if e.0.isEmpty { continue }
         let clip = AVURLAsset(url: sfxDir.appendingPathComponent("\(e.0).m4a"))
         guard let src = clip.tracks(withMediaType: .audio).first else { fatalError("missing sfx: \(e.0)") }
         let at = CMTime(seconds: e.1, preferredTimescale: 600)
@@ -588,7 +600,7 @@ if useSFX {
     }
 
     // 1) 타자기: 오프닝 글자마다  2) 클릭: 제품 번호 바뀔 때  3) 딩: 노랑 강조  4) 코인: 엔딩 문구
-    for n in 1...hookCharCount { sfxKey(typeStart + Double(n - 1) * perChar, n) }
+    for n in 1...hookCharCount { sfxKey(charTime(n), n) }
     for c in caps where c.style == .title { sfxClick(c.start) }
     for c in caps where c.style == .box || c.style == .cute { sfxDing(c.start) }
     sfxCoin(outroStart + 0.1)
@@ -687,7 +699,7 @@ var frames: [CGImage] = [bitmap(Int(W), Int(bandH)) { _ in }]
 var keyTimes: [NSNumber] = [0]
 for n in 1...hookCharCount {
     frames.append(band(hookImage(background: nil, centered: true, visible: n, dim: false, skipTag: true)))
-    keyTimes.append(NSNumber(value: (typeStart + Double(n - 1) * perChar) / hookEnd))
+    keyTimes.append(NSNumber(value: charTime(n) / hookEnd))
 }
 keyTimes.append(1)
 let typeLayer = CALayer()

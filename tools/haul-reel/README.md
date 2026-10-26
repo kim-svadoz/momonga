@@ -40,7 +40,7 @@ THUMB_ONLY=1 THUMB_FONT=<PostScript 이름> THUMB_OUT=<경로.jpg> swift tools/h
 - 배경 박스는 쓰지 않는다 (검정 박스는 촌스럽다는 피드백)
 - 엔딩: 원본 쇼핑 떼샷 구간(`OUTRO_FROM`, 2초)을 다시 붙이고 "곧 N탄도 가져올게요!" (부크크 명조) + 별 스티커
 - 소리: **2탄부터 `SFX=capcut`으로 렌더한다** (원본 소리 빼고 캡컷 효과음 배치). 효과음 파일은 `assets/sfx/` (사용자가 1탄을 캡컷에서 편집한 영상에서 잘라낸 것, git 제외)
-  - typing: 오프닝 내내 (0.05초~) / click: 제품 번호가 바뀔 때 / transition: 제품 사이 빈 화면(0.3초 이상 틈)이 있으면 앞 제품 끝 0.3초 전 / ding: 첫 노랑 강조 자막 / outro: 엔딩 문구 0.2초 뒤
+  - typing: 글자가 쳐지는 동안만 (덧말 앞 쉬는 시간과 다 쳐진 뒤엔 멈춤) / click: 제품 번호가 바뀔 때 / transition: 제품 사이 빈 화면(0.3초 이상 틈)이 있으면 앞 제품 끝 0.3초 전 / ding: 첫 노랑 강조 자막 / outro: 엔딩 문구 0.2초 뒤
   - 효과음을 바꾸려면 같은 이름의 m4a 파일만 바꿔 넣는다. 합성 효과음(`SFX=1`)은 촌스럽다는 피드백으로 쓰지 않는다.
 
 ## 회차별 설정 (reel.swift 회차 데이터)
@@ -56,6 +56,8 @@ THUMB_ONLY=1 THUMB_FONT=<PostScript 이름> THUMB_OUT=<경로.jpg> swift tools/h
 | `HOOK_FONT` 오프닝 큰 제목 | BookkMyungjo-Bd | BookkMyungjo-Bd |
 | `HOOK_LINE1_Y` 오프닝 첫 줄 높이 | 0.495 | 0.41 (태그가 가슴 높이) |
 | `OUTRO_SIZE` / `OUTRO_LEAD_SIZE` 엔딩 글자 | 84 / 54 | 70 / 40 |
+| `HOOK_LINE3_COLOR` / `HOOK_LINE3_PAUSE` 덧말 색·앞 쉬는 시간 | — | 연분홍 / 0.5초 |
+| `FLOATS` 원하는 위치에 작은 색 배경 자막 | — | "광택 너무 예쁨.." (민트) |
 | `THUMB_LOGO` 썸네일 브랜드 글자 (Didot, 머리 위, 사람을 오려 얹음) | "" | "ZARA" (검정) |
 | `THUMB_SHOW_TAG` 썸네일에 훅 태그 | — | false |
 | `VIDEO_LOGO` 오프닝 동안 머리 뒤 로고 (프레임마다 사람 오려냄) | — | true (높이 0.13, 폭 0.86) |
