@@ -795,7 +795,7 @@ for c in caps {
 // floating chips: small text on a colored strip placed anywhere (x, y = center as fractions from the top-left)
 let FLOATS: [(start: Double, end: Double, text: String, x: CGFloat, y: CGFloat, bg: NSColor)] = [
     // 블랙 퀼팅을 손으로 쓰다듬는 순간, 손 오른쪽
-    (10.5, 11.4, "광택 너무 예쁨..", 0.70, 0.36, THUMB_TAG_BG),
+    (9.6, 11.5, "광택 너무 예쁨..", 0.70, 0.36, THUMB_TAG_BG),
 ]
 for fl in FLOATS {
     let img = boxed(fl.text, font: font("Pretendard-SemiBold", 34), color: chipInk, box: fl.bg, padX: 16, padY: 8)
