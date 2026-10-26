@@ -131,7 +131,7 @@ let caps: [Cap] = (SERIES_LABEL.isEmpty ? [] : [Cap(start: HOOK_END, end: END, t
     Cap(start: 19.1, end: END, text: "코튼 100% 숏 파카 | 139,900원", style: .title),
     Cap(start: 19.1, end: 20.3, text: "화사한 베이지 컬러 야상", style: .main),
     Cap(start: 20.3, end: 21.5, text: "허리 스트링으로 핏 조절 가능하고", style: .main),
-    Cap(start: 21.5, end: END, text: "열면 체크 안감이 포인트", style: .main),
+    Cap(start: 21.5, end: END, text: "체크 안감 포인트가 너무 예쁨", style: .main),
 ]
 
 // MARK: - drawing helpers
