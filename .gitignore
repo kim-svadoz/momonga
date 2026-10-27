@@ -13,3 +13,7 @@ assets/sfx/
 # sugo 등록 정보 (컴퓨터마다 경로가 달라서 공유하지 않음)
 sugo/config.json
 sugo/install-manifest.json
+
+# 파이썬이 시험을 돌릴 때 만드는 임시 파일
+__pycache__/
+*.pyc
