@@ -7,13 +7,138 @@ import ImageIO
 import UniformTypeIdentifiers
 import Vision
 
-// usage: swift reel.swift <input.mov> <outdir>
-// v2: lazy.eunn 스타일 (번호 제품명 명조 + 흰 글자 검정 테두리 자막 + 검정 박스 강조)
+// usage: EPISODE=<회차.json> [PROFILE=<채널 프로필.json>] swift reel.swift <input.mov> <outdir>
+// 채널 설정과 영상 종류별 양식은 PROFILE(기본: channels/insta-reels/profile.json), 영상 한 편의 내용은 EPISODE에서 읽는다.
+// 두 파일의 형식은 channels/profile-schema.md.
 let input = URL(fileURLWithPath: CommandLine.arguments[1])
 let outDir = CommandLine.arguments[2]
-let W: CGFloat = 1080, H: CGFloat = 1920
-let fontDir = NSHomeDirectory() + "/Library/Fonts/"
+let env = ProcessInfo.processInfo.environment
 
+// MARK: - profile and episode
+
+func fail(_ message: String) -> Never {
+    FileHandle.standardError.write(Data("reel: \(message)\n".utf8))
+    exit(2)
+}
+func loadJSON(_ path: String, _ what: String) -> [String: Any] {
+    guard let data = FileManager.default.contents(atPath: path) else { fail("\(what) 파일을 읽을 수 없다: \(path)") }
+    guard let obj = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { fail("\(what) 파일이 올바른 JSON이 아니다: \(path)") }
+    return obj
+}
+func obj(_ d: [String: Any], _ k: String) -> [String: Any] { d[k] as? [String: Any] ?? [:] }
+func num(_ d: [String: Any], _ k: String, _ def: Double) -> Double { (d[k] as? NSNumber)?.doubleValue ?? def }
+func str(_ d: [String: Any], _ k: String, _ def: String = "") -> String { d[k] as? String ?? def }
+func flag(_ d: [String: Any], _ k: String) -> Bool { (d[k] as? NSNumber)?.boolValue ?? false }
+// [빨강, 초록, 파랑, 투명도]. 회색(세 값이 같음)은 white로 만든다 — 이전 코드의 NSColor(white:alpha:)와 같은 색 공간을 쓰기 위해서
+func color(_ d: [String: Any], _ k: String, _ def: [Double]) -> NSColor {
+    let v = (d[k] as? [NSNumber])?.map { $0.doubleValue } ?? def
+    if v[0] == v[1] && v[1] == v[2] { return NSColor(white: v[0], alpha: v[3]) }
+    return NSColor(red: v[0], green: v[1], blue: v[2], alpha: v[3])
+}
+
+let profilePath = env["PROFILE"] ?? URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+    .appendingPathComponent("../../channels/insta-reels/profile.json").standardized.path
+guard let episodePath = env["EPISODE"] else { fail("EPISODE=<회차 파일>이 필요하다 (예: tools/haul-reel/episodes/sample.json)") }
+let profile = loadJSON(profilePath, "프로필")
+let episode = loadJSON(episodePath, "회차")
+
+let canvas = obj(profile, "canvas")
+guard let canvasW = canvas["width"] as? NSNumber, let canvasH = canvas["height"] as? NSNumber else { fail("프로필에 canvas.width/height가 없다") }
+let W = CGFloat(canvasW.doubleValue), H = CGFloat(canvasH.doubleValue)
+let fonts = obj(profile, "fonts")
+
+let presetName = str(episode, "preset")
+let presets = obj(profile, "presets")
+guard let presetBase = presets[presetName] as? [String: Any] else {
+    fail("프로필에 양식 '\(presetName)'이 없다 (있는 양식: \(presets.keys.sorted().joined(separator: ", ")))")
+}
+// 회차의 overrides가 양식 값보다 우선한다
+let P = presetBase.merging(obj(episode, "overrides")) { _, new in new }
+let hookSpec = obj(episode, "hook"), thumbSpec = obj(episode, "thumb"), outroSpec = obj(episode, "outro")
+
+guard let endNum = episode["end"] as? NSNumber, let hookEndNum = episode["hookEnd"] as? NSNumber else { fail("회차에 end와 hookEnd가 필요하다") }
+let END = endNum.doubleValue
+// 오프닝(훅) 길이
+let HOOK_END = hookEndNum.doubleValue
+// 타자기 속도: 한 글자 간격(초)
+let HOOK_PER_CHAR = num(P, "hookPerChar", 0.05)
+// 엔딩을 따로 붙일 때의 구간 (OUTRO_INLINE이 false일 때만 OUTRO_FROM을 쓴다)
+let OUTRO_FROM = num(P, "outroFrom", 0), OUTRO_LEN = num(P, "outroLen", 1.5)
+// true: 엔딩을 따로 붙이지 않고 컷편집본의 마지막 OUTRO_LEN초(이어지는 장면) 위에 엔딩 문구를 띄운다
+let OUTRO_INLINE = flag(P, "outroInline")
+let OUTRO_TEXT = str(outroSpec, "text")
+// 엔딩 큰 글씨 위/밑에 작게 붙는 줄 ("" = 없음, "\n" = 줄바꿈)
+let OUTRO_LEAD = str(outroSpec, "lead")
+let OUTRO_TAIL = str(outroSpec, "tail")
+let OUTRO_SIZE = CGFloat(num(P, "outroSize", 84)), OUTRO_LEAD_SIZE = CGFloat(num(P, "outroLeadSize", 54))
+// 훅 맨 윗줄 (작은 태그, "" = 없음)
+let HOOK_TAG = str(P, "hookTag")
+// true: 태그를 작은 배경 띠에 넣어 큰 제목 바로 위에 붙인다, false: 큰 노랑 글자
+let HOOK_TAG_CHIP = flag(P, "hookTagChip")
+// 띠 배경 (훅 태그·맨 위 시리즈 라벨)과 글자색, 모서리 둥글기 (0 = 네모)
+let PILL_BG = color(P, "pillBg", [1, 1, 1, 0.92]), PILL_INK = color(P, "pillInk", [0.1, 0.1, 0.1, 1])
+let PILL_RADIUS = CGFloat(num(P, "pillRadius", 0))
+// 오프닝 큰 제목 글꼴과 첫 줄 높이 (화면 위에서부터 비율)
+let HOOK_FONT = str(P, "hookFont", str(fonts, "hook"))
+let HOOK_LINE1_Y = CGFloat(num(P, "hookLine1Y", 0.495))
+// 썸네일 로고 글자 ("" = 없음)와 색
+let THUMB_LOGO = str(thumbSpec, "logo")
+let THUMB_LOGO_COLOR = thumbSpec["logoColor"] == nil ? NSColor.black : color(thumbSpec, "logoColor", [0, 0, 0, 1])
+// 오프닝 동안 로고를 머리 바로 뒤에 고정. 양식에 videoLogo가 없으면 쓰지 않는다
+let videoLogoSpec = P["videoLogo"] as? [String: Any]
+let VIDEO_LOGO = videoLogoSpec != nil
+let VIDEO_LOGO_Y = CGFloat(num(videoLogoSpec ?? [:], "y", 0.13)), VIDEO_LOGO_WIDTH = CGFloat(num(videoLogoSpec ?? [:], "width", 0.86))
+// 썸네일 큰 제목: "" = 오프닝과 같은 두 줄. 값이 있으면 썸네일만 이 문구로 ("/" = 줄바꿈, 둘째 줄이 더 크다)
+let THUMB_TITLE = str(thumbSpec, "title")
+// 썸네일 제목 첫 줄 높이 (0 = 오프닝 문구와 같은 높이)
+let THUMB_TITLE_Y = CGFloat(num(P, "thumbTitleY", 0))
+// 썸네일에 훅 태그를 넣을지
+let THUMB_SHOW_TAG = flag(P, "thumbShowTag")
+// 썸네일 큰 제목 글꼴 (환경변수 THUMB_FONT가 있으면 그게 우선)
+let THUMB_FONT_NAME = str(P, "thumbFont", str(fonts, "hook"))
+// 오프닝 큰 제목 두 줄 (첫 줄 작게, 둘째 줄 크게 — 썸네일과 같은 모양)
+let HOOK_LINE1 = str(hookSpec, "line1"), HOOK_LINE2 = str(hookSpec, "line2")
+let HOOK_LINE1_SIZE = CGFloat(num(hookSpec, "line1Size", 56)), HOOK_LINE2_SIZE = CGFloat(num(hookSpec, "line2Size", 100))
+let HOOK_LINE2_COLOR = NSColor.white
+// 오프닝 큰 제목 밑에 작게 붙는 줄 ("" = 없음). 얇고 귀여운 손글씨
+let HOOK_LINE3 = str(hookSpec, "line3"), HOOK_LINE3_FONT = str(fonts, "handwriting")
+// 별·점 스티커 (썸네일·오프닝·엔딩)
+let STICKERS = flag(P, "stickers")
+// 글꼴: 훅 큰 제목·엔딩 문구 / 메인 자막
+let DISPLAY_FONT = str(P, "displayFont", str(fonts, "display")), MAIN_FONT = str(P, "mainFont", str(fonts, "main"))
+// true: 제품명을 위쪽 큰 명조 대신 아래쪽 작은 글씨로. 이때 제품명 줄에 가격을 같이 쓴다
+let TITLE_BOTTOM = flag(P, "titleBottom")
+// true: 맨 위 시리즈 라벨을 색 배경 띠로. 라벨 글자 ("" = 없음)
+let SERIES_CHIP = flag(P, "seriesChip")
+let SERIES_LABEL = str(P, "seriesLabel")
+// 제품명·가격 줄 높이 (화면 위에서부터 비율)
+let TITLE_Y = CGFloat(num(P, "titleY", 0.775))
+let THUMB_TAG = str(thumbSpec, "tag")
+// true: 썸네일 꼬리표를 네모 배경 띠로 (THUMB_TAG_Y 높이, THUMB_TAG_BG 색), false: 제목 밑 손글씨
+let THUMB_TAG_CHIP = flag(P, "thumbTagChip"), THUMB_TAG_Y = CGFloat(num(P, "thumbTagY", 0.545))
+let THUMB_TAG_BG = color(P, "thumbTagBg", [0.62, 0.9, 0.84, 1])
+
+// MARK: - caption timeline
+
+enum Style: String { case title, main, box, cute, lead, chip, gloss, price, note, series, outro }
+struct Cap { let start: Double; let end: Double; let text: String; let style: Style }
+
+let episodeCaps: [Cap] = (episode["caps"] as? [[String: Any]] ?? []).map { c in
+    guard let s = c["start"] as? NSNumber, let e = c["end"] as? NSNumber, let t = c["text"] as? String,
+          let style = Style(rawValue: str(c, "style")) else { fail("회차 caps 항목이 올바르지 않다: \(c)") }
+    return Cap(start: s.doubleValue, end: e.doubleValue, text: t, style: style)
+}
+let caps: [Cap] = (SERIES_LABEL.isEmpty ? [] : [Cap(start: HOOK_END, end: END, text: SERIES_LABEL, style: .series)]) + episodeCaps
+
+// 길이 상한이 정해진 채널이면 영상이 상한을 넘는지 먼저 본다 (null이면 검사하지 않는다)
+if let limit = (profile["maxSeconds"] as? NSNumber)?.doubleValue {
+    let length = CMTimeGetSeconds(AVURLAsset(url: input).duration) + (OUTRO_INLINE ? 0 : OUTRO_LEN)
+    if length > limit { fail("영상 길이 \(length)초가 \(str(profile, "channel")) 채널 상한 \(limit)초를 넘는다") }
+}
+
+// MARK: - fonts and palette
+
+let fontDir = NSHomeDirectory() + "/Library/Fonts/"
 for f in ["Pretendard-Black.otf", "Pretendard-ExtraBold.otf", "Pretendard-Bold.otf", "Pretendard-SemiBold.otf",
           "Pretendard-Medium.otf", "BookkMyungjo_Bold.ttf", "YoonChildfundkoreaDaeHan.otf"] {
     CTFontManagerRegisterFontsForURL(URL(fileURLWithPath: fontDir + f) as CFURL, .process, nil)
@@ -22,9 +147,8 @@ for f in ["Pretendard-Black.otf", "Pretendard-ExtraBold.otf", "Pretendard-Bold.o
 for f in (try? FileManager.default.contentsOfDirectory(atPath: fontDir)) ?? [] {
     CTFontManagerRegisterFontsForURL(URL(fileURLWithPath: fontDir + f) as CFURL, .process, nil)
 }
-let env = ProcessInfo.processInfo.environment
 // thumbnail title font (big lines); THUMB_ONLY=1 writes only the thumbnail to THUMB_OUT
-let titleFont = env["THUMB_FONT"] ?? "BookkMyungjo-Bd"
+let titleFont = env["THUMB_FONT"] ?? THUMB_FONT_NAME
 func font(_ name: String, _ size: CGFloat) -> NSFont {
     guard let f = NSFont(name: name, size: size) else { fatalError("font missing: \(name)") }
     return f
@@ -35,104 +159,6 @@ let cream = NSColor(red: 1.0, green: 0.96, blue: 0.86, alpha: 1)
 // chip: ordihome-style flat color strip behind dark text (matcha green for the 2탄 말차 line)
 let chipBg = NSColor(red: 0.78, green: 0.91, blue: 0.60, alpha: 1)
 let chipInk = NSColor(red: 0.12, green: 0.16, blue: 0.08, alpha: 1)
-
-// MARK: - caption timeline
-
-enum Style { case title, main, box, cute, lead, chip, gloss, price, note, series, outro }
-struct Cap { let start: Double; let end: Double; let text: String; let style: Style }
-
-// ===== 회차 데이터: 자라 맨즈 아우터 (162 출근룩) v6 — 제목 "이건 사지 마세요..", 대본 v2 =====
-// 이전 회차: output/261025/reels_돈키호테 추천템 1탄/reel_1탄.swift, output/261025/reels_돈키호테 추천템 2탄/reel_2탄.swift
-let END = 23.9
-// 오프닝(훅) 길이: 1~4번 착장 전신 숏컷(0.8초씩) 위에 훅 문구. 다 쳐진 뒤 2초 가까이 머문다
-let HOOK_END = 3.2
-// 타자기 속도: 한 글자 간격(초)
-let HOOK_PER_CHAR = 0.04
-// 엔딩: 버건디 전신 컷(3.2~4.6)을 한 번 더 붙이고 댓글 유도 문구
-let OUTRO_FROM = 3.2, OUTRO_LEN = 1.5
-// true: 엔딩을 따로 붙이지 않고 컷편집본의 마지막 OUTRO_LEN초(이어지는 장면) 위에 엔딩 문구를 띄운다. OUTRO_FROM은 안 씀
-let OUTRO_INLINE = true
-let OUTRO_TEXT = "댓글에 '자라' 남겨주시면"
-// 엔딩 큰 글씨 위에 작게 붙는 줄 ("" = 없음)
-let OUTRO_LEAD = ""
-// 엔딩 큰 글씨 밑에 작게 붙는 줄 ("" = 없음, "\n" = 줄바꿈)
-let OUTRO_TAIL = "영상 속 제품 정보, 착용 사이즈까지\n정리해서 보내드릴게요 💌"
-// 엔딩 글자 크기: 큰 줄 / 위 작은 줄 (하울 릴스: 84 / 54)
-let OUTRO_SIZE: CGFloat = 70, OUTRO_LEAD_SIZE: CGFloat = 40
-// 훅 맨 윗줄 (작은 태그). 하울 릴스는 "[저장 필수]", 패션 릴스는 고정 타겟 키워드
-let HOOK_TAG = ""  // "" = 태그 없음
-// true: 태그를 작은 알약 모양 배경에 넣어 큰 제목 바로 위에 붙인다, false: 큰 노랑 글자 (하울 릴스)
-let HOOK_TAG_CHIP = true
-// 알약 배경 (훅 태그·맨 위 시리즈 라벨): 흰 배경 + 먹색 글자. 오프닝에선 태그가 왼쪽부터 닦이듯 그라데이션으로 들어온다
-let PILL_BG = NSColor(white: 1, alpha: 0.92), PILL_INK = NSColor(white: 0.1, alpha: 1)
-// 알약 모서리 둥글기 (0 = 네모, 높이의 절반 = 완전 둥근 알약)
-let PILL_RADIUS: CGFloat = 0
-// 오프닝 큰 제목 글꼴 (썸네일은 THUMB_FONT로 따로 고를 수 있다)
-let HOOK_FONT = "BookkMyungjo-Bd"
-// 오프닝 큰 제목 첫 줄 높이 (화면 위에서부터 비율). 0.41이면 태그가 전신 컷의 가슴 높이에 온다 (하울 릴스: 0.495)
-let HOOK_LINE1_Y: CGFloat = 0.41
-// 썸네일 로고 글자 ("" = 없음). 머리 위에 크게, Didot 글꼴. 사람을 따로 오려 로고 위에 얹어 머리가 로고를 살짝 가린다
-let THUMB_LOGO = "ZARA"
-let THUMB_LOGO_COLOR = NSColor.black
-// 오프닝(0~HOOK_END) 동안 로고를 머리 바로 뒤에 고정 (썸네일처럼 프레임마다 사람을 오려 머리가 로고를 가린다)
-// 높이는 오프닝 컷들의 머리 꼭대기(0.12~0.18)에 맞춤. 1번 제품이 시작되면 사라진다
-let VIDEO_LOGO = true, VIDEO_LOGO_Y: CGFloat = 0.13, VIDEO_LOGO_WIDTH: CGFloat = 0.86
-// 썸네일 큰 제목: "" = 오프닝과 같은 두 줄. 값이 있으면 썸네일만 이 문구로 ("/" = 줄바꿈, 둘째 줄이 더 크다)
-let THUMB_TITLE = "자라 맨즈 아우터/이건 사지 마세요.."
-// 썸네일 제목 첫 줄 높이 (화면 위에서부터 비율, 가운데 기준). 0 = 오프닝 문구와 같은 높이
-let THUMB_TITLE_Y: CGFloat = 0.43
-// 썸네일에 훅 태그(고정 타겟 키워드)를 넣을지
-let THUMB_SHOW_TAG = false
-// 썸네일 큰 제목 글꼴 (환경변수 THUMB_FONT가 있으면 그게 우선)
-let THUMB_FONT_NAME = "BookkMyungjo-Bd"
-// 오프닝 큰 제목 두 줄 (첫 줄 작게, 둘째 줄 크게 — 썸네일과 같은 모양)
-let HOOK_LINE1 = "자라 맨즈 아우터", HOOK_LINE2 = "이건 사지 마세요.."
-let HOOK_LINE1_SIZE: CGFloat = 56, HOOK_LINE2_SIZE: CGFloat = 100
-let HOOK_LINE2_COLOR = NSColor.white
-// 오프닝 큰 제목 밑에 작게 붙는 줄 ("" = 없음). 얇고 귀여운 손글씨
-let HOOK_LINE3 = "저만 입고싶으니까..", HOOK_LINE3_FONT = "YoonChildfundkoreaManSeh"
-// 별·점 스티커 (썸네일·오프닝·엔딩). 하울 릴스에만 쓴다
-let STICKERS = false
-// 글꼴: 훅 큰 제목·엔딩 문구 / 메인 자막 (하울 릴스: BookkMyungjo-Bd / Pretendard-SemiBold)
-let DISPLAY_FONT = "Pretendard-SemiBold", MAIN_FONT = "Pretendard-Medium"
-// true: 제품명을 위쪽 큰 명조 대신 아래쪽 작은 글씨로 (패션 피팅 영상). 이때 제품명 줄에 가격을 같이 쓴다
-let TITLE_BOTTOM = true
-// true: 맨 위 시리즈 라벨을 색 배경 띠로
-let SERIES_CHIP = true
-// 맨 위 시리즈 라벨 ("" = 없음)
-let SERIES_LABEL = ""
-// 제품명·가격 줄 높이 (화면 위에서부터 비율). TITLE_BOTTOM일 때 0.775 = 아래쪽, 0.125 = 맨 위 라벨 자리
-let TITLE_Y: CGFloat = 0.125
-let THUMB_TAG = "두툼한 초겨울 아우터 모음zip."
-// true: 썸네일 꼬리표를 네모 배경 띠로 (THUMB_TAG_Y 높이, THUMB_TAG_BG 색), false: 제목 밑 손글씨
-let THUMB_TAG_CHIP = true, THUMB_TAG_Y: CGFloat = 0.545
-let THUMB_TAG_BG = NSColor(red: 0.62, green: 0.90, blue: 0.84, alpha: 1)
-let caps: [Cap] = (SERIES_LABEL.isEmpty ? [] : [Cap(start: HOOK_END, end: END, text: SERIES_LABEL, style: .series)]) + [
-
-    // 1. 버건디 퀼팅 재킷 (3.2~9.3)
-    Cap(start: 3.2, end: 9.3, text: "릴렉스핏 퀼팅 재킷 | 149,900원", style: .title),
-    Cap(start: 3.2, end: 7.0, text: "톤다운된 버건디 컬러로\n늦가을 분위기 끝", style: .main),
-    Cap(start: 7.0, end: 9.3, text: "안에 퀼팅 안감이\n도톰하게 들어있어서", style: .main),
-    Cap(start: 7.3, end: 9.3, text: "초가을 말고 지금 입기 딱!", style: .box),
-
-    // 2. 바버맛 퀼팅 재킷 (9.3~14.3)
-    Cap(start: 9.3, end: 14.3, text: "콤비 기하학적 퀼팅 재킷 | 109,900원", style: .title),
-    Cap(start: 9.3, end: 11.4, text: "10만원대 바버맛 퀼팅 자켓 실존", style: .main),
-    Cap(start: 11.4, end: 14.3, text: "카라랑 소매는 코듀로이", style: .main),
-    Cap(start: 11.9, end: 14.3, text: "디테일까지 바버 맛..", style: .box),
-
-    // 3. 페이크 레더 재킷 (14.3~19.1)
-    Cap(start: 14.3, end: 19.1, text: "릴렉스핏 페이크 레더 | 149,900원", style: .title),
-    Cap(start: 14.3, end: 16.3, text: "일잘러 출근룩 필수템\n블랙 레더 재킷", style: .main),
-    Cap(start: 16.3, end: 19.1, text: "엉덩이 덮는 기장이라", style: .main),
-    Cap(start: 16.6, end: 19.1, text: "와이드 팬츠랑 찰떡", style: .box),
-
-    // 4. 코튼 100% 숏 파카 (19.1~23.9, 엔딩 23.9~25.4는 숄더백 컷이 이어짐)
-    Cap(start: 19.1, end: END, text: "코튼 100% 숏 파카 | 139,900원", style: .title),
-    Cap(start: 19.1, end: 20.3, text: "화사한 베이지 컬러 야상", style: .main),
-    Cap(start: 20.3, end: 21.5, text: "허리 스트링으로 핏 조절 가능하고", style: .main),
-    Cap(start: 21.5, end: END, text: "열면 체크 안감이 포인트", style: .main),
-]
 
 // MARK: - drawing helpers
 

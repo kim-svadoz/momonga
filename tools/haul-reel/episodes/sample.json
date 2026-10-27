@@ -1,0 +1,124 @@
+{
+  "preset": "fitting",
+  "overrides": {
+    "outroFrom": 3.2,
+    "outroLen": 1.5
+  },
+  "end": 23.9,
+  "hookEnd": 3.2,
+  "hook": {
+    "line1": "자라 맨즈 아우터",
+    "line2": "이건 사지 마세요..",
+    "line3": "저만 입고싶으니까..",
+    "line1Size": 56,
+    "line2Size": 100
+  },
+  "thumb": {
+    "title": "자라 맨즈 아우터/이건 사지 마세요..",
+    "tag": "두툼한 초겨울 아우터 모음zip.",
+    "logo": "ZARA"
+  },
+  "outro": {
+    "text": "댓글에 '자라' 남겨주시면",
+    "lead": "",
+    "tail": "영상 속 제품 정보, 착용 사이즈까지\n정리해서 보내드릴게요 💌"
+  },
+  "caps": [
+    {
+      "start": 3.2,
+      "end": 9.3,
+      "text": "릴렉스핏 퀼팅 재킷 | 149,900원",
+      "style": "title"
+    },
+    {
+      "start": 3.2,
+      "end": 7.0,
+      "text": "톤다운된 버건디 컬러로\n늦가을 분위기 끝",
+      "style": "main"
+    },
+    {
+      "start": 7.0,
+      "end": 9.3,
+      "text": "안에 퀼팅 안감이\n도톰하게 들어있어서",
+      "style": "main"
+    },
+    {
+      "start": 7.3,
+      "end": 9.3,
+      "text": "초가을 말고 지금 입기 딱!",
+      "style": "box"
+    },
+    {
+      "start": 9.3,
+      "end": 14.3,
+      "text": "콤비 기하학적 퀼팅 재킷 | 109,900원",
+      "style": "title"
+    },
+    {
+      "start": 9.3,
+      "end": 11.4,
+      "text": "10만원대 바버맛 퀼팅 자켓 실존",
+      "style": "main"
+    },
+    {
+      "start": 11.4,
+      "end": 14.3,
+      "text": "카라랑 소매는 코듀로이",
+      "style": "main"
+    },
+    {
+      "start": 11.9,
+      "end": 14.3,
+      "text": "디테일까지 바버 맛..",
+      "style": "box"
+    },
+    {
+      "start": 14.3,
+      "end": 19.1,
+      "text": "릴렉스핏 페이크 레더 | 149,900원",
+      "style": "title"
+    },
+    {
+      "start": 14.3,
+      "end": 16.3,
+      "text": "일잘러 출근룩 필수템\n블랙 레더 재킷",
+      "style": "main"
+    },
+    {
+      "start": 16.3,
+      "end": 19.1,
+      "text": "엉덩이 덮는 기장이라",
+      "style": "main"
+    },
+    {
+      "start": 16.6,
+      "end": 19.1,
+      "text": "와이드 팬츠랑 찰떡",
+      "style": "box"
+    },
+    {
+      "start": 19.1,
+      "end": 23.9,
+      "text": "코튼 100% 숏 파카 | 139,900원",
+      "style": "title"
+    },
+    {
+      "start": 19.1,
+      "end": 20.3,
+      "text": "화사한 베이지 컬러 야상",
+      "style": "main"
+    },
+    {
+      "start": 20.3,
+      "end": 21.5,
+      "text": "허리 스트링으로 핏 조절 가능하고",
+      "style": "main"
+    },
+    {
+      "start": 21.5,
+      "end": 23.9,
+      "text": "열면 체크 안감이 포인트",
+      "style": "main"
+    }
+  ]
+}

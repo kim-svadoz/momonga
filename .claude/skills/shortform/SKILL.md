@@ -10,10 +10,10 @@ description: apps/shorts-editor 숏폼 편집기로 세로 영상(MP4)을 만든
 ## 실행
 
 ```bash
-python3 -m http.server 5173 --bind 127.0.0.1 --directory apps/shorts-editor
+python3 -m http.server 5173 --bind 127.0.0.1
 ```
 
-Chrome에서 http://localhost:5173 을 연다. 작업 내용은 브라우저에 자동 저장된다. 코드를 고친 뒤에는 **Cmd+Shift+R**로 새로고침한다.
+저장소 폴더에서 서버를 켠다. Chrome에서 http://localhost:5173/apps/shorts-editor/ 를 연다. 위쪽 **채널** 칸에서 올릴 채널을 고르면 화면 비율·길이 상한·안전 영역이 그 채널 프로필(`channels/<채널>/profile.json`)을 따른다. 작업 내용은 브라우저에 자동 저장된다. 코드를 고친 뒤에는 **Cmd+Shift+R**로 새로고침한다.
 
 ## 흐름
 

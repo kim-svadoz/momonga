@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "channel": "insta-reels",
+  "canvas": { "width": 1080, "height": 1920 },
+  "maxSeconds": null,
+  "safeArea": null,
+  "fonts": {
+    "display": "BookkMyungjo-Bd",
+    "main": "Pretendard-SemiBold",
+    "hook": "BookkMyungjo-Bd",
+    "handwriting": "YoonChildfundkoreaManSeh"
+  },
+  "sfx": { "defaultMode": "capcut", "dir": "assets/sfx" },
+  "presets": {
+    "haul": {
+      "stickers": true,
+      "hookTag": "[저장 필수]",
+      "hookTagChip": false,
+      "seriesChip": false,
+      "seriesLabel": "",
+      "hookPerChar": 0.05,
+      "hookFont": "BookkMyungjo-Bd",
+      "hookLine1Y": 0.495,
+      "outroSize": 84,
+      "outroLeadSize": 54,
+      "outroInline": false,
+      "videoLogo": null,
+      "thumbFont": "BookkMyungjo-Bd",
+      "thumbTitleY": 0,
+      "thumbTagChip": false,
+      "titleBottom": false,
+      "displayFont": "BookkMyungjo-Bd",
+      "mainFont": "Pretendard-SemiBold"
+    },
+    "fitting": {
+      "stickers": false,
+      "hookTag": "",
+      "hookTagChip": true,
+      "seriesChip": true,
+      "seriesLabel": "",
+      "pillBg": [1, 1, 1, 0.92],
+      "pillInk": [0.1, 0.1, 0.1, 1],
+      "pillRadius": 0,
+      "hookPerChar": 0.04,
+      "hookFont": "BookkMyungjo-Bd",
+      "hookLine1Y": 0.41,
+      "outroSize": 70,
+      "outroLeadSize": 40,
+      "outroInline": true,
+      "videoLogo": { "y": 0.13, "width": 0.86 },
+      "thumbShowTag": false,
+      "thumbFont": "BookkMyungjo-Bd",
+      "thumbTitleY": 0.43,
+      "thumbTagChip": true,
+      "thumbTagY": 0.545,
+      "thumbTagBg": [0.62, 0.9, 0.84, 1],
+      "titleBottom": true,
+      "titleY": 0.125,
+      "displayFont": "Pretendard-SemiBold",
+      "mainFont": "Pretendard-Medium"
+    }
+  }
+}
