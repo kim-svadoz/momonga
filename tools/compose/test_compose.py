@@ -103,16 +103,20 @@ class ComposeTest(unittest.TestCase):
         self.assertNotIn("profile.json", r.stderr)
 
     def test_edit_without_channel_profile_names_the_missing_file(self):
-        r = run("tiktok", "edit")
-        self.assertNotEqual(r.returncode, 0)
-        self.assertEqual(r.stdout, "")
-        self.assertIn("channels/tiktok/profile.json", r.stderr)
+        with tempfile.TemporaryDirectory() as tmp:
+            copy = Path(tmp) / "repo"
+            shutil.copytree(ROOT, copy, ignore=shutil.ignore_patterns(".git", "output", "inbox", "sugo"))
+            (copy / "channels/tiktok/profile.json").unlink(missing_ok=True)
+            r = run("tiktok", "edit", root=copy)
+            self.assertNotEqual(r.returncode, 0)
+            self.assertEqual(r.stdout, "")
+            self.assertIn("channels/tiktok/profile.json", r.stderr)
 
     def test_stub_channel_write_works_and_warns_about_empty_cells(self):
         r = run("tiktok", "write")
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("비어 있는 칸", r.stdout)
-        self.assertNotIn("channels/tiktok/profile.json", r.stdout)
+        self.assertNotIn("channels/tiktok/profile.json", doc_order(r.stdout))  # 글쓰기에는 편집 설정을 읽지 않는다
 
     def test_missing_workflow_names_the_file_and_prints_nothing(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -133,6 +137,89 @@ class ComposeTest(unittest.TestCase):
             r = run("naver-blog", "write", root=copy)
             self.assertIn("workflows/write.md", r.stderr)
             self.assertIn("brand/voice.md", r.stderr)
+
+
+class PendingDecisionsTest(unittest.TestCase):
+    """결정 시트(docs/결정할-것.md)에서 아직 정하지 않은 항목을 알린다. PRD REQ-5."""
+
+    def sheet_copy(self, edit=None):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        copy = Path(tmp.name) / "repo"
+        shutil.copytree(ROOT, copy, ignore=shutil.ignore_patterns(".git", "output", "inbox", "sugo"))
+        if edit is not None:
+            sheet = copy / "docs/결정할-것.md"
+            sheet.write_text(edit(sheet.read_text(encoding="utf-8")), encoding="utf-8")
+        return copy
+
+    def test_pending_items_for_the_channel_and_common_are_listed(self):
+        out = run("youtube-shorts", "write").stdout
+        self.assertIn("## 결정 대기", out)
+        self.assertIn("D1", out)  # 공통
+        self.assertIn("D3", out)  # youtube-shorts가 해당
+
+    def test_items_for_other_channels_are_not_listed(self):
+        out = run("tiktok", "write").stdout
+        self.assertIn("D8", out)  # tiktok 전용
+        self.assertNotIn("D4", out.split("## 문서:")[0])  # insta-story 전용
+        story = run("insta-story", "write").stdout.split("## 문서:")[0]
+        self.assertIn("D4", story)
+        self.assertNotIn("D8", story)
+
+    def test_decided_items_are_not_listed(self):
+        copy = self.sheet_copy(lambda t: t.replace("| D1 | 공통 | 어느 채널을 먼저 올릴까요? | 급함 | ⬜ 미정 |",
+                                                   "| D1 | 공통 | 어느 채널을 먼저 올릴까요? | 급함 | ✅ 정함 |"))
+        head = run("youtube-shorts", "write", root=copy).stdout.split("## 문서:")[0]
+        self.assertNotIn("D1 ", head)
+        self.assertIn("D3", head)
+
+    def test_no_section_when_nothing_is_pending(self):
+        copy = self.sheet_copy(lambda t: t.replace("⬜ 미정", "✅ 정함"))
+        r = run("youtube-shorts", "write", root=copy)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertNotIn("## 결정 대기", r.stdout)
+
+    def test_missing_sheet_is_not_an_error(self):
+        copy = self.sheet_copy()
+        (copy / "docs/결정할-것.md").unlink()
+        r = run("naver-blog", "write", root=copy)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertNotIn("## 결정 대기", r.stdout)
+
+    def test_list_option_shows_only_documents(self):
+        out = run("youtube-shorts", "write", "--list").stdout
+        self.assertNotIn("결정 대기", out)
+        self.assertNotIn("D1", out)
+
+    def test_the_section_does_not_change_the_document_order(self):
+        order = doc_order(run("youtube-shorts", "write").stdout)
+        self.assertNotIn("docs/결정할-것.md", order)  # 안내만 하고 문서로 읽지는 않는다
+
+    def test_output_is_still_identical_between_runs(self):
+        self.assertEqual(run("youtube-shorts", "write").stdout, run("youtube-shorts", "write").stdout)
+
+
+class VideoChannelsTest(unittest.TestCase):
+    """영상 채널(숏폼·스토리·롱폼)은 모두 편집 설정이 있어서 편집 목적으로 조합된다. PRD REQ-2."""
+
+    def video_channels(self):
+        found = []
+        for f in sorted((ROOT / "channels").glob("*/channel.md")):
+            text = f.read_text(encoding="utf-8")
+            family = re.search(r"^family: (.+)$", text, flags=re.M).group(1)
+            purposes = re.search(r"^purposes: \[(.+)\]$", text, flags=re.M).group(1)
+            if family in ("숏폼", "스토리", "롱폼") and "edit" in purposes:
+                found.append(f.parent.name)
+        return found
+
+    def test_there_are_video_channels(self):
+        self.assertGreaterEqual(len(self.video_channels()), 5)
+
+    def test_every_video_channel_composes_for_editing(self):
+        for channel in self.video_channels():
+            r = run(channel, "edit")
+            self.assertEqual(r.returncode, 0, f"{channel}: {r.stderr}")
+            self.assertIn(f"channels/{channel}/profile.json", doc_order(r.stdout))
 
 
 class BriefTest(unittest.TestCase):

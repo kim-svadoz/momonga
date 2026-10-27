@@ -17,6 +17,7 @@ const repo = path.resolve(here, '../..');
 const readJson = (p) => JSON.parse(fs.readFileSync(path.join(repo, p), 'utf8'));
 const reels = readJson('channels/insta-reels/profile.json');
 const alt = readJson('tools/haul-reel/fixtures/profile-alt.json');
+const tiktok = readJson('channels/tiktok/profile.json'); // 길이 상한을 모르는 채널 (maxSeconds: null)
 
 function freshModel() {
   const ctx = vm.createContext({});
@@ -66,11 +67,27 @@ test('지원하지 않는 화면 크기면 아무것도 바꾸지 않고 이유�
 
 test('길이 상한이 null이면 검사하지 않고, 있으면 넘을 때만 알린다', () => {
   const run = freshModel();
-  run('applyChannelProfile(p)', { p: reels });
+  run('applyChannelProfile(p)', { p: tiktok });
   assert.equal(run('limitWarning(9999)'), '');
+  run('applyChannelProfile(p)', { p: reels });
+  assert.equal(run('limitWarning(180)'), '');
+  assert.match(run('limitWarning(181)'), /180초를 1\.0초/);
   run('applyChannelProfile(p)', { p: alt });
   assert.equal(run('limitWarning(30)'), '');
   assert.match(run('limitWarning(31.5)'), /30초.*1\.5초/);
+});
+
+test('channels 폴더의 모든 편집 설정은 편집기가 지원하는 화면 크기다', () => {
+  const run = freshModel();
+  const files = fs.readdirSync(path.join(repo, 'channels'), { withFileTypes: true })
+    .filter((d) => d.isDirectory() && fs.existsSync(path.join(repo, 'channels', d.name, 'profile.json')))
+    .map((d) => d.name);
+  assert.ok(files.length >= 5, '영상 채널 편집 설정이 5개 이상 있다');
+  for (const name of files) {
+    const profile = readJson(`channels/${name}/profile.json`);
+    assert.equal(profile.channel, name, `${name}: channel 값이 폴더 이름과 같다`);
+    assert.ok(run('aspectForCanvas(p)', { p: profile.canvas }), `${name}: ${profile.canvas.width}x${profile.canvas.height}를 편집기가 지원한다`);
+  }
 });
 
 test('채널을 풀면 프로필 검사가 사라진다', () => {
@@ -176,8 +193,12 @@ test('편집기 화면: 채널 없이 열면 비율을 직접 고를 수 있고 
 test('편집기 화면: 채널 목록에는 프로필이 있는 채널만 나온다', { skip: !hasChrome }, async () => {
   await withServer(async (port) => {
     const s = await page(port);
-    assert.ok(s.options.includes('insta-reels'));
-    assert.ok(!s.options.includes('naver-blog')); // 프로필이 없는 채널
+    for (const id of ['insta-reels', 'insta-story', 'tiktok', 'youtube-shorts', 'youtube-long']) {
+      assert.ok(s.options.includes(id), `${id}가 목록에 있다`);
+    }
+    for (const id of ['naver-blog', 'threads', 'insta-post']) {
+      assert.ok(!s.options.includes(id), `${id}는 프로필이 없어서 목록에 없다`); // 글·사진 채널
+    }
   });
 });
 
@@ -188,11 +209,19 @@ test('편집기 화면: 프로필이 다르면 화면 비율과 경고가 다르
     assert.equal(r.aspectLocked, true);
     assert.equal(r.aspect, '9:16');
     assert.match(r.note, /9:16/);
-    assert.equal(r.warning, ''); // 길이 상한을 모르는 채널(null)은 검사하지 않는다
+    assert.equal(r.warning, ''); // 40초는 릴스 상한(180초) 안이다
     assert.equal(a.aspectLocked, true);
     assert.equal(a.aspect, '4:5');
     assert.match(a.note, /30초/);
     assert.match(a.warning, /30초를 10\.0초 넘어요/); // 40초 장면 하나 → 상한 30초 초과
+  });
+});
+
+test('편집기 화면: 길이 상한이 없는 채널(null)은 아무리 길어도 경고하지 않는다', { skip: !hasChrome }, async () => {
+  await withServer(async (port) => {
+    const t = await page(port, '?profile=channels/tiktok/profile.json');
+    assert.equal(t.aspectLocked, true);
+    assert.equal(t.warning, '');
   });
 });
 

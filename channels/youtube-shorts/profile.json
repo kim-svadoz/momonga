@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "channel": "youtube-shorts",
+  "canvas": {
+    "width": 1080,
+    "height": 1920
+  },
+  "maxSeconds": 180,
+  "safeArea": null,
+  "presets": {}
+}

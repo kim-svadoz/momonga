@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "channel": "youtube-long",
+  "canvas": {
+    "width": 1920,
+    "height": 1080
+  },
+  "maxSeconds": null,
+  "safeArea": null,
+  "presets": {}
+}

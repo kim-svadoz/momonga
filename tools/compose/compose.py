@@ -26,6 +26,9 @@ FAMILY_SECTION = {
     "롱폼": ("### 사진, 스토리, 롱폼", "사진·스토리·롱폼 공통 규격"),
 }
 EMPTY_CELL = "⬜"
+DECISIONS_SHEET = "docs/결정할-것.md"
+# 결정 시트 맨 위 표의 한 줄: | D1 | 공통 또는 채널 이름(쉼표로 여러 개) | 질문 | 급함 | ⬜ 미정 |
+DECISION_ROW = re.compile(r"^\|\s*(D\d+)\s*\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|\s*$")
 
 
 class ComposeError(Exception):
@@ -136,7 +139,24 @@ def build_plan(root, channel, purpose, origin, brief_label, brief_body):
     return docs, front, empty
 
 
-def render(channel, purpose, front, empty, docs):
+def pending_decisions(root, channel):
+    """결정 시트에서 아직 정하지 않은(미정) 항목 중 이 채널 또는 공통에 해당하는 것. 시트가 없으면 빈 목록."""
+    sheet = root / DECISIONS_SHEET
+    if not sheet.is_file():
+        return []
+    found = []
+    for line in sheet.read_text(encoding="utf-8").splitlines():
+        m = DECISION_ROW.match(line)
+        if not m:
+            continue
+        number, channels, question, urgency, state = (g.strip() for g in m.groups())
+        applies = [c.strip() for c in channels.split(",")]
+        if "미정" in state and ("공통" in applies or channel in applies):
+            found.append((number, channels, question, urgency))
+    return found
+
+
+def render(channel, purpose, front, empty, docs, pending=()):
     out = [f"# 조합: {channel} × {purpose}", ""]
     out.append(f"채널: {front.get('name', channel)} (계열: {front.get('family')}, 상태: {front.get('status')})")
     out.append("")
@@ -149,6 +169,13 @@ def render(channel, purpose, front, empty, docs):
             f"channels/{channel}/channel.md에 {EMPTY_CELL}로 비어 있는 줄이 {empty}개 있다. "
             "비어 있는 칸은 추측해서 채우지 말고 사용자에게 알린다.",
         ]
+    if pending:
+        out += [
+            "",
+            "## 결정 대기",
+            f"벵짱이 아직 정하지 않은 항목이다. 작업을 시작하기 전에 사용자에게 알리고, 원하면 그 자리에서 묻는다. 항목별 선택지와 추천은 {DECISIONS_SHEET}에 있다.",
+        ]
+        out += [f"- {n} ({c}, {u}): {q}" for n, c, q, u in pending]
     for label, text in docs:
         out += ["", "---", f"## 문서: {label}", "", text]
     return "\n".join(out) + "\n"
@@ -190,7 +217,7 @@ def run(args):
     docs, front, empty = build_plan(root, channel, purpose, origin, brief_label, brief_body)
     if args.list:
         return "\n".join(label for label, _ in docs) + "\n"
-    return render(channel, purpose, front, empty, docs)
+    return render(channel, purpose, front, empty, docs, pending_decisions(root, channel))
 
 
 def main(argv=None):
