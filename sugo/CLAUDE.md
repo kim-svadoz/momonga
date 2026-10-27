@@ -1,13 +1,13 @@
-> 적용 하네스 최근 변경: 2026-10-24T07:50:58.860Z
+> 적용 하네스 최근 변경: 2026-10-27T06:25:47.572Z
 
-# content-studio — Sugo 하네스 인덱스
+# momonga — Sugo 하네스 인덱스
 
 > 자동 생성됨. `sugo:add`를 다시 실행하면 갱신됩니다. 개별 하네스 전문은
 > `sugo/harness/<id>/harness.md`, 검증 설정은 `sugo/harness/<id>/validation.yaml`을 참고하세요.
 > 이 파일 자체는 참고용 인덱스입니다 — Claude Code가 세션 시작 시 자동으로 읽는 건
 > `.claude/rules/*.md`와 프로젝트 루트 `CLAUDE.md`이며, 여기 있는 요약은 그걸 보완합니다.
 >
-> 워크스페이스: `fashion-content`
+> 워크스페이스: `work-agent`
 
 ## 감지된 스택
 
