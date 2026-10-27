@@ -167,8 +167,8 @@ class PendingDecisionsTest(unittest.TestCase):
         self.assertNotIn("D8", story)
 
     def test_decided_items_are_not_listed(self):
-        copy = self.sheet_copy(lambda t: t.replace("| D1 | youtube-shorts, tiktok | 질문 1. 릴스를 유튜브 쇼츠·틱톡에도 올릴까요? | 급함 | ⬜ 미정 |",
-                                                   "| D1 | youtube-shorts, tiktok | 질문 1. 릴스를 유튜브 쇼츠·틱톡에도 올릴까요? | 급함 | ✅ 정함 |"))
+        copy = self.sheet_copy(lambda t: t.replace("| D1 | youtube-shorts, tiktok | 질문 1. 릴스를 유튜브 쇼츠용·틱톡용으로도 준비할까요? | 급함 | ⬜ 미정 |",
+                                                   "| D1 | youtube-shorts, tiktok | 질문 1. 릴스를 유튜브 쇼츠용·틱톡용으로도 준비할까요? | 급함 | ✅ 정함 |"))
         head = run("youtube-shorts", "write", root=copy).stdout.split("## 문서:")[0]
         self.assertNotIn("D1 ", head)
         self.assertIn("D3", head)
