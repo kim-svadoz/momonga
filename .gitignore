@@ -8,3 +8,7 @@ history/글쓰기_규칙_원본.txt
 
 # 캡컷에서 가져온 효과음 (캡컷 소리라 공개 저장소에 올리지 않음)
 assets/sfx/
+
+# sugo 등록 정보 (컴퓨터마다 경로가 달라서 공유하지 않음)
+sugo/config.json
+sugo/install-manifest.json
