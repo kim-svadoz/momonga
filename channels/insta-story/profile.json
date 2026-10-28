@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "channel": "insta-story",
+  "canvas": {
+    "width": 1080,
+    "height": 1920
+  },
+  "maxSeconds": null,
+  "safeArea": null,
+  "presets": {}
+}

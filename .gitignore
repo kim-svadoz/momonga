@@ -1,6 +1,7 @@
 .DS_Store
 output/
 bengjjang/
+inbox/
 
 # 개인 자료 (원본 글, 사진, 예전 작업 폴더)
 brand/samples/
@@ -8,3 +9,11 @@ history/글쓰기_규칙_원본.txt
 
 # 캡컷에서 가져온 효과음 (캡컷 소리라 공개 저장소에 올리지 않음)
 assets/sfx/
+
+# sugo 등록 정보 (컴퓨터마다 경로가 달라서 공유하지 않음)
+sugo/config.json
+sugo/install-manifest.json
+
+# 파이썬이 시험을 돌릴 때 만드는 임시 파일
+__pycache__/
+*.pyc

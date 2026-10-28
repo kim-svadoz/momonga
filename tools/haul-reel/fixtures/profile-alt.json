@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "channel": "alt-test",
+  "canvas": {
+    "width": 1080,
+    "height": 1350
+  },
+  "maxSeconds": 30,
+  "safeArea": null,
+  "fonts": {
+    "display": "AppleSDGothicNeo-Bold",
+    "main": "AppleSDGothicNeo-Bold",
+    "hook": "AppleSDGothicNeo-Bold",
+    "handwriting": "AppleSDGothicNeo-Bold"
+  },
+  "sfx": {
+    "defaultMode": "capcut",
+    "dir": "assets/sfx"
+  },
+  "presets": {
+    "fitting": {
+      "stickers": false,
+      "hookTag": "",
+      "hookTagChip": true,
+      "seriesChip": true,
+      "seriesLabel": "",
+      "pillBg": [
+        1,
+        1,
+        1,
+        0.92
+      ],
+      "pillInk": [
+        0.1,
+        0.1,
+        0.1,
+        1
+      ],
+      "pillRadius": 0,
+      "hookPerChar": 0.04,
+      "hookFont": "AppleSDGothicNeo-Bold",
+      "hookLine1Y": 0.41,
+      "outroSize": 70,
+      "outroLeadSize": 40,
+      "outroInline": true,
+      "videoLogo": {
+        "y": 0.13,
+        "width": 0.86
+      },
+      "thumbShowTag": false,
+      "thumbFont": "AppleSDGothicNeo-Bold",
+      "thumbTitleY": 0.43,
+      "thumbTagChip": true,
+      "thumbTagY": 0.545,
+      "thumbTagBg": [
+        0.62,
+        0.9,
+        0.84,
+        1
+      ],
+      "titleBottom": true,
+      "titleY": 0.125,
+      "displayFont": "AppleSDGothicNeo-Bold",
+      "mainFont": "AppleSDGothicNeo-Bold"
+    }
+  }
+}

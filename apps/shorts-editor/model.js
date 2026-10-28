@@ -28,6 +28,7 @@ const DEFAULT_SUBTITLE = () => ({
 const DEFAULT_PROJECT = () => ({
   version: 2,
   aspect: '9:16',
+  channel: '', // 고른 채널 프로필 이름 (channels/<이름>/profile.json), 없으면 ''
   script: '',
   cps: 6,
   minDur: 1.5,
@@ -70,6 +71,51 @@ function normalizeProject(p) {
     return n;
   });
   return out;
+}
+
+// ---------- 채널 프로필 ----------
+// 프로필 형식은 channels/profile-schema.md. 모르는 값(null)은 검사하지 않는다.
+
+let channelProfile = null; // 지금 고른 채널 프로필, 없으면 null
+
+// 프로필 화면 크기와 같은 비율 이름. 이 편집기가 지원하지 않는 크기면 null
+function aspectForCanvas(canvas) {
+  const hit = Object.entries(ASPECTS).find(([, [w, h]]) => w === canvas.width && h === canvas.height);
+  return hit ? hit[0] : null;
+}
+
+// 프로필을 고르면 화면 비율을 프로필에 맞춘다. 지원하지 않는 크기면 아무것도 바꾸지 않고 이유를 돌려준다
+function applyChannelProfile(profile) {
+  const aspect = aspectForCanvas(profile.canvas);
+  if (!aspect) {
+    return { ok: false, message: `이 편집기는 ${profile.canvas.width}×${profile.canvas.height} 화면을 지원하지 않아요` };
+  }
+  channelProfile = profile;
+  project.aspect = aspect;
+  project.channel = profile.channel;
+  return { ok: true };
+}
+
+function clearChannelProfile() {
+  channelProfile = null;
+  project.channel = '';
+}
+
+// 영상이 채널 길이 상한을 넘으면 알림 글, 아니면 ''
+function limitWarning(total) {
+  const max = channelProfile && channelProfile.maxSeconds;
+  if (max == null || total <= max) return '';
+  return `채널 상한 ${max}초를 ${(total - max).toFixed(1)}초 넘어요`;
+}
+
+// 글자가 가려지는 위·아래 영역을 화면 높이 비율 띠로. 모르면(null) 빈 목록
+function safeAreaBands() {
+  const area = channelProfile && channelProfile.safeArea;
+  if (!area) return [];
+  const bands = [];
+  if (area.top > 0) bands.push({ top: 0, height: area.top });
+  if (area.bottom > 0) bands.push({ top: 1 - area.bottom, height: area.bottom });
+  return bands;
 }
 
 // ---------- 길이 ----------

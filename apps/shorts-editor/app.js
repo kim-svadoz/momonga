@@ -125,6 +125,15 @@ function redraw() {
   syncVideos();
   renderFrame(ctx, t, { hint: true });
   Overlays.drawSelection(ctx);
+  drawSafeArea();
+}
+
+// 채널 프로필에 안전 영역이 있으면 글자가 가려지는 위·아래 띠를 미리보기에만 그린다 (내보내기는 별도 캔버스라 들어가지 않는다)
+function drawSafeArea() {
+  ctx.save();
+  ctx.fillStyle = 'rgba(255, 80, 80, 0.25)';
+  for (const b of safeAreaBands()) ctx.fillRect(0, b.top * canvas.height, canvas.width, b.height * canvas.height);
+  ctx.restore();
 }
 
 // ---------- 재생 ----------
@@ -201,6 +210,9 @@ let panelSceneId = null;
 function updateTransport() {
   const total = totalDuration();
   $('timeLabel').textContent = `${fmt(t)} / ${fmt(total)}`;
+  const warning = $('limitWarning');
+  warning.textContent = limitWarning(total);
+  warning.style.color = '#ff6b6b';
   $('playhead').style.left = total ? `${(t / total) * 100}%` : '0';
   const i = sceneIndexAt(t);
   if (i !== lastActive) {
@@ -527,6 +539,7 @@ function fillSettings() {
   $('script').value = project.script;
   $('cps').value = project.cps;
   $('minDur').value = project.minDur;
+  syncChannel();
   $('subFont').innerHTML = Fonts.optionsHtml(project.subtitle.font);
   document.querySelectorAll('[data-sub]').forEach((el) => {
     const v = project.subtitle[el.dataset.sub];
@@ -757,6 +770,115 @@ function initEvents() {
   window.addEventListener('resize', () => redraw());
 }
 
+// ---------- 채널 프로필 ----------
+// 저장소 폴더에서 서버를 켜면(README) ../../channels/ 아래의 profile.json을 찾을 수 있다.
+// 프로필이 정하는 것: 화면 비율(고정), 길이 상한(넘으면 경고), 안전 영역(미리보기 띠)
+
+const CHANNELS_URL = new URL('../../channels/', location.href);
+let channelOptions = []; // [{ id, profile }]
+let channelsReady = false;
+
+async function fetchProfile(url) {
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const profile = await res.json();
+  return profile.canvas ? profile : null;
+}
+
+// 서버가 보여주는 폴더 목록에서 채널 폴더를 찾아 profile.json이 있는 것만 모은다
+async function listChannelProfiles() {
+  const res = await fetch(CHANNELS_URL);
+  if (!res.ok) return [];
+  const ids = [...(await res.text()).matchAll(/href="([^"/.][^"/]*)\/"/g)].map((m) => decodeURIComponent(m[1]));
+  const found = [];
+  for (const id of ids) {
+    const profile = await fetchProfile(new URL(`${id}/profile.json`, CHANNELS_URL));
+    if (profile) found.push({ id, profile });
+  }
+  return found;
+}
+
+function showChannelNote(text, isError = false) {
+  const el = $('channelNote');
+  el.textContent = text;
+  el.style.color = isError ? '#ff6b6b' : '';
+}
+
+function describeProfile(profile) {
+  const parts = [`화면 ${project.aspect}`];
+  if (profile.maxSeconds != null) parts.push(`길이 ${profile.maxSeconds}초 이내`);
+  return parts.join(', ');
+}
+
+// 화면(비율 잠금·안내)을 프로필에 맞춘다. 프로젝트 데이터는 건드리지 않는다
+function showChannel(profile) {
+  $('aspect').disabled = !!profile;
+  $('aspect').value = project.aspect;
+  $('channel').value = project.channel;
+  showChannelNote(profile ? describeProfile(profile) : '');
+}
+
+// 사용자가 채널을 바꿨을 때
+function selectChannel(profile) {
+  if (profile) {
+    const result = applyChannelProfile(profile);
+    if (!result.ok) {
+      showChannelNote(result.message, true);
+      $('channel').value = project.channel;
+      return;
+    }
+  } else {
+    clearChannelProfile();
+  }
+  showChannel(profile);
+  changed();
+}
+
+// 프로젝트가 통째로 바뀌었을 때(새로 시작, 불러오기, 처음 열기) 프로젝트에 저장된 채널 이름에 맞춘다
+function syncChannel() {
+  if (!channelsReady) return;
+  const name = project.channel;
+  const hit = channelOptions.find((c) => c.id === name);
+  const result = hit ? applyChannelProfile(hit.profile) : null;
+  if (hit && result.ok) {
+    showChannel(hit.profile);
+    return;
+  }
+  clearChannelProfile();
+  project.channel = name;
+  showChannel(null);
+  if (name) showChannelNote(hit ? result.message : `'${name}' 채널 프로필을 찾지 못했어요`, true);
+}
+
+async function initChannels() {
+  try {
+    channelOptions = await listChannelProfiles();
+  } catch (e) {
+    console.error(e);
+    showChannelNote('채널 목록을 불러오지 못했어요. README의 방법으로 저장소 폴더에서 서버를 켜 주세요', true);
+  }
+  // 주소 뒤에 ?profile=<저장소 기준 파일 경로>를 붙이면 그 프로필을 바로 쓴다 (시험용)
+  const direct = new URLSearchParams(location.search).get('profile');
+  if (direct) {
+    const profile = await fetchProfile(new URL(direct, new URL('../../', location.href)));
+    if (!profile) {
+      showChannelNote(`프로필을 읽지 못했어요: ${direct}`, true);
+    } else {
+      channelOptions = channelOptions.filter((c) => c.id !== profile.channel).concat({ id: profile.channel, profile });
+      project.channel = profile.channel;
+    }
+  }
+  $('channel').innerHTML = '<option value="">채널 없음</option>'
+    + channelOptions.map((c) => `<option value="${c.id}">${c.id}</option>`).join('');
+  $('channel').addEventListener('change', () => {
+    const hit = channelOptions.find((c) => c.id === $('channel').value);
+    selectChannel(hit ? hit.profile : null);
+  });
+  channelsReady = true;
+  syncChannel();
+  changed();
+}
+
 async function init() {
   const saved = await DB.get('kv', 'project');
   if (saved) project = normalizeProject(saved);
@@ -772,6 +894,8 @@ async function init() {
   renderScenes();
   renderTimeline();
   redraw();
+  await initChannels();
+  document.body.dataset.ready = 'true';
 }
 
 init();

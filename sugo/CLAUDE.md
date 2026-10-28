@@ -1,6 +1,6 @@
-> 적용 하네스 최근 변경: 2026-10-24T07:50:58.860Z
+> 적용 하네스 최근 변경: 2026-10-27T06:31:38.455Z
 
-# content-studio — Sugo 하네스 인덱스
+# momonga — Sugo 하네스 인덱스
 
 > 자동 생성됨. `sugo:add`를 다시 실행하면 갱신됩니다. 개별 하네스 전문은
 > `sugo/harness/<id>/harness.md`, 검증 설정은 `sugo/harness/<id>/validation.yaml`을 참고하세요.
